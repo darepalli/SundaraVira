@@ -5,6 +5,9 @@ Browser-playable action prototype inspired by Sundarakanda.
 ## Language versions
 - Telugu + Hindi: `README.te-hi.md`
 
+## Testing guide
+- Manual desktop/mobile test notes and checklist: `MANUAL_TESTING.md`
+
 ## What is implemented
 - Static-JS Phaser scene flow with Boot, Menu, Stage, and Victory scenes.
 - Side-scrolling action slice with movement, jump, hazards, and collectibles.
@@ -62,6 +65,17 @@ Current e2e coverage includes:
 ## Deploy options
 - Static hosting friendly: GitHub Pages, Netlify, or Vercel.
 - PWA support can be added in next step with Vite plugin.
+
+### GitHub Pages (auto deploy on push)
+This repo includes a workflow at `.github/workflows/deploy-pages.yml` that deploys the static site from `main`.
+
+1. Open your GitHub repo settings: `Settings -> Pages`
+2. Under **Build and deployment**, set **Source** to **GitHub Actions**
+3. Push to `main` (or run the workflow manually from the Actions tab)
+4. Share the Pages URL with testers:
+   `https://darepalli.github.io/SundaraVira/`
+
+Note: First deployment may take a few minutes while Pages is provisioned.
 
 ## Controls
 - Move: `A/D` or left/right arrows
