@@ -1,0 +1,57 @@
+{
+  "id": "stage2-mainaka",
+  "title": "Stage 2: Mainaka Ascent",
+  "objectiveText": "Stage 2: Gather 3 sky fragments, shift to Large form, and reach Mainaka.",
+  "backgroundColor": "#10253f",
+  "targetFragments": 3,
+  "goal": {
+    "x": 895,
+    "y": 128,
+    "width": 44,
+    "height": 72,
+    "color": 10608895,
+    "label": "Mainaka Peak",
+    "labelX": 754,
+    "labelY": 92
+  },
+  "sea": {
+    "baseColor": 1009254,
+    "foamColor": 9366005
+  },
+  "clouds": {
+    "color": 15266815,
+    "alpha": 0.34,
+    "groups": [
+      [120, 94, 0.95],
+      [300, 68, 0.8],
+      [540, 104, 1.15],
+      [760, 82, 0.9],
+      [910, 62, 0.75]
+    ]
+  },
+  "mountain": {
+    "x": 880,
+    "y": 265,
+    "points": [0, 300, 120, 300, 70, 0],
+    "color": 5076623,
+    "alpha": 0.45
+  },
+  "platforms": [
+    [480, 520, 960, 40, 1723743],
+    [210, 430, 220, 20, 2778752],
+    [430, 350, 220, 20, 2778752],
+    [650, 270, 220, 20, 2778752],
+    [840, 190, 200, 20, 2778752]
+  ],
+  "fragments": [
+    [240, 390],
+    [500, 310],
+    [760, 230]
+  ],
+  "enemies": [
+    [280, 410],
+    [560, 330],
+    [760, 250],
+    [880, 170]
+  ]
+}

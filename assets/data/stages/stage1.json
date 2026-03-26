@@ -1,0 +1,49 @@
+{
+  "id": "stage1",
+  "title": "Stage 1: Sacred Beacon",
+  "objectiveText": "Stage 1: Gather 5 fragments, become Large, and touch the beacon.",
+  "backgroundColor": "#0f1533",
+  "targetFragments": 5,
+  "goal": {
+    "x": 900,
+    "y": 180,
+    "width": 40,
+    "height": 70,
+    "color": 5699947,
+    "label": "Sacred Beacon",
+    "labelX": 762,
+    "labelY": 135
+  },
+  "sea": {
+    "baseColor": 1061215,
+    "foamColor": 7254237
+  },
+  "clouds": {
+    "color": 14543103,
+    "alpha": 0.28,
+    "groups": [
+      [140, 110, 1.0],
+      [360, 82, 0.85],
+      [620, 120, 1.1],
+      [860, 88, 0.95]
+    ]
+  },
+  "platforms": [
+    [480, 520, 960, 40, 2043759],
+    [180, 400, 240, 20, 2963335],
+    [520, 320, 260, 20, 2963335],
+    [830, 250, 220, 20, 2963335]
+  ],
+  "fragments": [
+    [170, 360],
+    [270, 360],
+    [500, 280],
+    [615, 280],
+    [830, 210]
+  ],
+  "enemies": [
+    [350, 480],
+    [700, 290],
+    [820, 220]
+  ]
+}

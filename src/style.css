@@ -1,0 +1,378 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse at 50% 0%, #3a1800 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 100%, #1a0408 0%, transparent 60%),
+    linear-gradient(180deg, #04081a 0%, #0a0d22 50%, #100508 100%);
+  color: #e9ecff;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+}
+
+canvas {
+  border: 1px solid rgba(80, 50, 10, 0.60);
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,0.8),
+    0 0 40px rgba(200, 80, 0, 0.18),
+    0 16px 60px rgba(0, 0, 0, 0.75);
+  border-radius: 2px;
+}
+
+.hud {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  width: min(920px, calc(100% - 24px));
+  background: rgba(4, 6, 18, 0.88);
+  border: 1px solid rgba(80, 100, 200, 0.40);
+  border-top: 1px solid rgba(150, 120, 40, 0.30);
+  border-radius: 12px;
+  padding: 10px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.60), inset 0 1px 0 rgba(255,200,80,0.08);
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.hud.auto-offer-success {
+  box-shadow: 0 0 0 2px rgba(115, 255, 170, 0.55), 0 0 28px rgba(115, 255, 170, 0.45);
+  border-color: #73ffaa;
+}
+
+.stats {
+  font-size: 14px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(93, 115, 214, 0.3);
+  padding-bottom: 6px;
+}
+
+.chant-panel {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chant-input {
+  flex: 1;
+  min-width: 220px;
+  background: #111838;
+  border: 1px solid #4052a5;
+  color: #f4f6ff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+/* Live interim transcript — mic is hearing something */
+.chant-input.interim {
+  color: #88aadd;
+  border-color: rgba(80, 160, 255, 0.55);
+  font-style: italic;
+}
+
+.mic-language {
+  min-width: 150px;
+  background: #111838;
+  border: 1px solid #4052a5;
+  color: #f4f6ff;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+button {
+  background: #f09a2a;
+  border: 0;
+  border-radius: 8px;
+  color: #111;
+  font-weight: 700;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+button:hover {
+  filter: brightness(1.08);
+}
+
+.message {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #c7d2ff;
+}
+
+.mic-status {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #8fd7ff;
+}
+
+.browser-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #ffd37a;
+}
+
+.endgame-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 8, 18, 0.72);
+  z-index: 40;
+  padding: 20px;
+}
+
+.endgame-overlay[hidden] {
+  display: none !important;
+}
+
+.endgame-card {
+  width: min(560px, calc(100% - 24px));
+  background: linear-gradient(160deg, rgba(24, 16, 8, 0.97), rgba(12, 8, 30, 0.97));
+  border: 1px solid rgba(200, 130, 30, 0.55);
+  border-top: 1px solid rgba(255, 200, 80, 0.40);
+  border-radius: 16px;
+  box-shadow:
+    0 0 60px rgba(180, 80, 0, 0.30),
+    0 24px 60px rgba(0, 0, 0, 0.70),
+    inset 0 1px 0 rgba(255, 200, 80, 0.12);
+  padding: 28px 32px;
+  text-align: center;
+}
+
+.endgame-title {
+  margin: 0 0 8px;
+  color: #ffd37a;
+  font-size: 32px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  text-shadow: 0 0 18px rgba(255, 160, 20, 0.70);
+  letter-spacing: 1px;
+}
+
+.endgame-summary {
+  margin: 0;
+  color: #ecf1ff;
+  font-size: 17px;
+}
+
+.endgame-tip {
+  margin: 12px 0 18px;
+  color: #cad5ff;
+  font-size: 15px;
+}
+
+/* ── Stat bars ─────────────────────────────────────────── */
+.stat-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  width: 76px;
+  font-size: 12px;
+  color: #a0aee0;
+  flex-shrink: 0;
+}
+
+.stat-bar-track {
+  flex: 1;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.stat-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.22s ease-out;
+}
+
+.stat-bar-health {
+  background: linear-gradient(90deg, #c43a3a, #ff7a5a);
+}
+
+.stat-bar-dharma {
+  background: linear-gradient(90deg, #1e6dbf, #72c8ff);
+}
+
+.stat-value {
+  width: 28px;
+  font-size: 12px;
+  color: #d0d7ff;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.stat-fragments {
+  font-size: 12px;
+  color: #f6b13e;
+  margin-top: 2px;
+}
+
+/* ── Vertical Bhakti column ────────────────────────────── */
+.bhakti-column {
+  position: fixed;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  z-index: 25;
+  pointer-events: none;
+  user-select: none;
+}
+
+.bhakti-track {
+  width: 22px;
+  height: 220px;
+  background: rgba(16, 8, 0, 0.70);
+  border: 1px solid rgba(255, 200, 50, 0.45);
+  border-radius: 11px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.5), 0 0 8px rgba(255,180,0,0.10);
+}
+
+.bhakti-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0%;
+  background: linear-gradient(0deg, #b87000 0%, #ffe066 100%);
+  border-radius: 11px;
+  transition: height 0.25s ease-out;
+  box-shadow: 0 0 10px rgba(255, 220, 70, 0.65);
+}
+
+.bhakti-value-text {
+  font-size: 13px;
+  font-weight: bold;
+  color: #ffe066;
+  text-shadow: 0 0 6px rgba(255, 200, 50, 0.8);
+}
+
+.bhakti-label {
+  font-size: 11px;
+  color: #ffd37a;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+/* ── Touch controls (mobile / touch devices) ──────────────── */
+.touch-controls {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding: 0 8px 10px;
+  pointer-events: none;
+  z-index: 30;
+}
+
+.touch-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.touch-row {
+  display: flex;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.touch-btn {
+  width: 74px;
+  height: 74px;
+  background: rgba(16, 24, 72, 0.78);
+  border: 2px solid rgba(140, 170, 255, 0.55);
+  border-radius: 14px;
+  color: #dde4ff;
+  font-size: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  transition: background 0.08s, border-color 0.08s;
+}
+
+.touch-btn:active,
+.touch-btn-held {
+  background: rgba(70, 50, 200, 0.88);
+  border-color: rgba(200, 180, 255, 0.90);
+  transform: scale(0.93);
+}
+
+.touch-btn-jump {
+  background: rgba(10, 60, 20, 0.78);
+  border-color: rgba(80, 220, 100, 0.60);
+}
+
+.touch-btn-attack {
+  background: rgba(140, 30, 30, 0.78);
+  border-color: rgba(255, 120, 70, 0.65);
+}
+
+.touch-btn-heavy {
+  background: rgba(90, 10, 100, 0.78);
+  border-color: rgba(210, 110, 255, 0.65);
+}
+
+.touch-btn-blast {
+  background: rgba(8, 50, 110, 0.78);
+  border-color: rgba(70, 190, 255, 0.65);
+}
+
+.touch-btn-size {
+  width: 64px;
+  height: 64px;
+  font-size: 24px;
+  background: rgba(20, 70, 30, 0.78);
+  border-color: rgba(90, 210, 90, 0.60);
+}
+
+/* Push HUD up above touch buttons on touch devices */
+body.touch-active .hud {
+  bottom: 140px;
+}
+
+/* Shrink and re-center bhakti column so it doesn't clash with left cluster */
+body.touch-active .bhakti-column {
+  top: 28%;
+}
+
+body.touch-active .bhakti-track {
+  height: 150px;
+}
