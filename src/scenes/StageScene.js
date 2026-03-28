@@ -220,6 +220,9 @@ class StageScene extends Phaser.Scene {
       (typing) => {
         this.isTypingChant = typing;
         this.setEnemyPauseForTyping(typing);
+        if (this.input?.keyboard) {
+          this.input.keyboard.enabled = !typing;
+        }
       },
       (value) => this.bhaktiInput.evaluate(value).success
     );

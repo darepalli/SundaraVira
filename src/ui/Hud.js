@@ -66,10 +66,12 @@ class Hud {
     this.chantInput.readOnly = false;
     this.chantInput.inputMode = "text";
     this.chantInput.enterKeyHint = "done";
+    this.chantInput.type = "text";
+    this.chantInput.name = "chant";
     this.chantInput.setAttribute("autocorrect", "off");
     this.chantInput.setAttribute("autocapitalize", "off");
     this.chantInput.setAttribute("aria-autocomplete", "none");
-    this.chantInput.setAttribute("autocomplete", "new-password");
+    this.chantInput.setAttribute("autocomplete", "off");
 
     this.micLanguageSelect = document.createElement("select");
     this.micLanguageSelect.className = "mic-language";
@@ -162,6 +164,16 @@ class Hud {
     this.chantInput.addEventListener("input", () => {
       this.manualChantBuffer = this.chantInput.value;
       this.chantInput.classList.remove("interim");
+    });
+
+    // On some mobile browsers, explicit focus from a touch gesture is needed
+    // for the on-screen keyboard to appear reliably.
+    this.chantInput.addEventListener("touchend", () => {
+      this.chantInput.focus({ preventScroll: true });
+    }, { passive: true });
+
+    this.chantInput.addEventListener("click", () => {
+      this.chantInput.focus({ preventScroll: true });
     });
 
     this.chantInput.addEventListener("paste", (event) => {
