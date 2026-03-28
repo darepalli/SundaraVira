@@ -63,7 +63,9 @@ class Hud {
     this.chantInput.placeholder = "Type or chant: Jai Shri Ram / जय श्री राम";
     this.chantInput.autocomplete = "off";
     this.chantInput.spellcheck = false;
-    this.chantInput.readOnly = true;
+    this.chantInput.readOnly = false;
+    this.chantInput.inputMode = "text";
+    this.chantInput.enterKeyHint = "done";
     this.chantInput.setAttribute("autocorrect", "off");
     this.chantInput.setAttribute("autocapitalize", "off");
     this.chantInput.setAttribute("aria-autocomplete", "none");
@@ -149,49 +151,22 @@ class Hud {
         return;
       }
 
-      if (event.ctrlKey || event.metaKey || event.altKey) {
-        return;
-      }
-
       if (event.key === "Enter") {
         event.preventDefault();
         onChant(this.manualChantBuffer);
         this.clearChantInput();
         return;
       }
+    });
 
-      if (event.key === "Backspace") {
-        event.preventDefault();
-        this.manualChantBuffer = this.manualChantBuffer.slice(0, -1);
-        this.syncChantInput();
-        return;
-      }
-
-      if (event.key === " ") {
-        event.preventDefault();
-        if (!this.manualChantBuffer.endsWith(" ")) {
-          this.manualChantBuffer += " ";
-          this.syncChantInput();
-        }
-        return;
-      }
-
-      if (event.key.length === 1) {
-        event.preventDefault();
-        this.manualChantBuffer += event.key;
-        this.syncChantInput();
-      }
+    this.chantInput.addEventListener("input", () => {
+      this.manualChantBuffer = this.chantInput.value;
+      this.chantInput.classList.remove("interim");
     });
 
     this.chantInput.addEventListener("paste", (event) => {
-      event.preventDefault();
-      const pasted = event.clipboardData?.getData("text") || "";
-      if (!pasted) {
-        return;
-      }
-
-      this.manualChantBuffer += pasted;
-      this.syncChantInput();
+      // Let browser handle paste naturally; input listener syncs buffer state.
+      this.chantInput.classList.remove("interim");
     });
 
     this.chantInput.addEventListener("focus", () => {
