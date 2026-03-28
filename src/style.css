@@ -343,6 +343,11 @@ button:hover {
   border-color: rgba(80, 220, 100, 0.60);
 }
 
+.touch-btn-diag {
+  background: rgba(24, 70, 18, 0.82);
+  border-color: rgba(130, 235, 120, 0.75);
+}
+
 .touch-btn-attack {
   background: rgba(140, 30, 30, 0.78);
   border-color: rgba(255, 120, 70, 0.65);

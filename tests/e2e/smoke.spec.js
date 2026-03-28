@@ -84,5 +84,5 @@ test("shows on-screen touch controls in gameplay", async ({ page }) => {
   });
 
   await expect(page.locator(".touch-controls")).toBeVisible();
-  await expect(page.locator(".touch-btn")).toHaveCount(8);
+  await expect(page.locator(".touch-btn")).toHaveCount(9);
 });

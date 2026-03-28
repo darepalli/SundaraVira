@@ -37,6 +37,7 @@ class StageScene extends Phaser.Scene {
     this.touchLeft = false;
     this.touchRight = false;
     this.touchJumpQueued = false;
+    this.touchDiag = false;
     this._touchAttackPending = false;
     this._touchHeavyPending = false;
     this._touchBlastPending = false;
@@ -105,6 +106,7 @@ class StageScene extends Phaser.Scene {
     this.touchLeft = false;
     this.touchRight = false;
     this.touchJumpQueued = false;
+    this.touchDiag = false;
     this._touchAttackPending = false;
     this._touchHeavyPending = false;
     this._touchBlastPending = false;
@@ -464,6 +466,8 @@ class StageScene extends Phaser.Scene {
       onRightDown: () => { this.touchRight = true; },
       onRightUp:   () => { this.touchRight = false; },
       onJump:      () => { this.touchJumpQueued = true; },
+      onDiagDown:  () => { this.touchDiag = true; },
+      onDiagUp:    () => { this.touchDiag = false; },
       onAttack:    () => { this._touchAttackPending = true; },
       onHeavy:     () => { this._touchHeavyPending = true; },
       onBlast:     () => { this._touchBlastPending = true; },
@@ -489,7 +493,7 @@ class StageScene extends Phaser.Scene {
     }
 
     this._touchTutorialShown = true;
-    this.hud.setMessage("Touch controls: left pad moves, up jumps, right pad triggers size/attacks/blast.");
+    this.hud.setMessage("Touch controls: left pad moves, up jumps, diagonal does forward-jump, right pad triggers size/attacks/blast.");
 
     this.time.delayedCall(5200, () => {
       if (!this.scene.isActive("StageScene") || this.isGameOver || this.isStageTransitioning) {
@@ -713,6 +717,15 @@ class StageScene extends Phaser.Scene {
     this.pointerMoveActive = false;
     this.pointerTargetX = null;
     this.pointerJumpQueued = false;
+    this.touchLeft = false;
+    this.touchRight = false;
+    this.touchJumpQueued = false;
+    this.touchDiag = false;
+    this._touchAttackPending = false;
+    this._touchHeavyPending = false;
+    this._touchBlastPending = false;
+    this._touchSmallPending = false;
+    this._touchLargePending = false;
 
     this.goalResolved = false;
     this.isStageTransitioning = false;
@@ -1083,8 +1096,8 @@ class StageScene extends Phaser.Scene {
 
   handleMovement() {
     const leftPressed = this.cursors.left.isDown || this.keys.left.isDown || this.touchLeft;
-    const rightPressed = this.cursors.right.isDown || this.keys.right.isDown || this.touchRight;
-    const upPressed = this.cursors.up.isDown || this.keys.up.isDown;
+    const rightPressed = this.cursors.right.isDown || this.keys.right.isDown || this.touchRight || this.touchDiag;
+    const upPressed = this.cursors.up.isDown || this.keys.up.isDown || this.touchDiag;
 
     const speed = this.playerActor.getMoveSpeed();
     const jump = this.playerActor.getJumpPower();

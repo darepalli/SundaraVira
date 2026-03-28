@@ -363,6 +363,7 @@ class Hud {
     leftCluster.className = "touch-cluster touch-cluster-left";
 
     const jumpBtn  = this._makeTouchBtn("↑", "touch-btn-jump");
+    const diagBtn  = this._makeTouchBtn("↗", "touch-btn-diag");
     const leftBtn  = this._makeTouchBtn("←");
     const rightBtn = this._makeTouchBtn("→");
 
@@ -374,12 +375,13 @@ class Hud {
 
     _bindHeld(leftBtn,  callbacks.onLeftDown,  callbacks.onLeftUp);
     _bindHeld(rightBtn, callbacks.onRightDown, callbacks.onRightUp);
+    _bindHeld(diagBtn, callbacks.onDiagDown, callbacks.onDiagUp);
     jumpBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); vibrateTap(); callbacks.onJump(); });
 
     const dpadRow = document.createElement("div");
     dpadRow.className = "touch-row";
     dpadRow.append(leftBtn, rightBtn);
-    leftCluster.append(jumpBtn, dpadRow);
+    leftCluster.append(jumpBtn, diagBtn, dpadRow);
 
     // ── Right cluster: actions ─────────────────────────────────────
     const rightCluster = document.createElement("div");
