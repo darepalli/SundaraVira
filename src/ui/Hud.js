@@ -18,6 +18,17 @@ class Hud {
     this.micAccessGranted = false;
     this.endgameReplayHandler = null;
     this.speechRecognitionSupported = Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+    this.allowedChants = [
+      "jai shri ram",
+      "shri ram",
+      "jai siya ram",
+      "sita ram",
+      "siyaram",
+      "jai hanuman",
+      "bajrang bali",
+      "jai hanuman jai shri ram",
+      "sundara kandam"
+    ];
 
     this.root = document.createElement("div");
     this.root.className = "hud";
@@ -60,18 +71,46 @@ class Hud {
 
     this.chantInput = document.createElement("input");
     this.chantInput.className = "chant-input";
-    this.chantInput.placeholder = "Type or chant: Jai Shri Ram / जय श्री राम";
+    this.chantInput.placeholder = "Choose a chant below or use mic";
     this.chantInput.autocomplete = "off";
     this.chantInput.spellcheck = false;
-    this.chantInput.readOnly = false;
+    this.chantInput.readOnly = true;
     this.chantInput.inputMode = "text";
     this.chantInput.enterKeyHint = "done";
     this.chantInput.type = "text";
     this.chantInput.name = "chant";
+    this.chantInput.lang = "en";
+    this.chantInput.setAttribute("spellcheck", "false");
     this.chantInput.setAttribute("autocorrect", "off");
-    this.chantInput.setAttribute("autocapitalize", "off");
+    this.chantInput.setAttribute("autocapitalize", "none");
+    this.chantInput.setAttribute("data-gramm", "false");
+    this.chantInput.setAttribute("data-gramm_editor", "false");
+    this.chantInput.setAttribute("data-enable-grammarly", "false");
     this.chantInput.setAttribute("aria-autocomplete", "none");
     this.chantInput.setAttribute("autocomplete", "off");
+
+    this.chantPresetSelect = document.createElement("select");
+    this.chantPresetSelect.className = "chant-preset";
+
+    const defaultPresetOption = document.createElement("option");
+    defaultPresetOption.value = "";
+    defaultPresetOption.textContent = "Select an allowed chant";
+    this.chantPresetSelect.append(defaultPresetOption);
+
+    this.allowedChants.forEach((phrase) => {
+      const option = document.createElement("option");
+      option.value = phrase;
+      option.textContent = phrase;
+      this.chantPresetSelect.append(option);
+    });
+
+    this.chantPresetSelect.addEventListener("change", () => {
+      if (!this.chantPresetSelect.value) {
+        return;
+      }
+      this.manualChantBuffer = this.chantPresetSelect.value;
+      this.syncChantInput();
+    });
 
     this.micLanguageSelect = document.createElement("select");
     this.micLanguageSelect.className = "mic-language";
@@ -96,8 +135,7 @@ class Hud {
     this.chantButton.type = "button";
     this.chantButton.textContent = "Offer Chant";
     this.chantButton.onclick = () => {
-      onChant(this.manualChantBuffer);
-      this.clearChantInput();
+      this.submitChant(onChant);
     };
 
     this.micButton = document.createElement("button");
@@ -155,15 +193,9 @@ class Hud {
 
       if (event.key === "Enter") {
         event.preventDefault();
-        onChant(this.manualChantBuffer);
-        this.clearChantInput();
+        this.submitChant(onChant);
         return;
       }
-    });
-
-    this.chantInput.addEventListener("input", () => {
-      this.manualChantBuffer = this.chantInput.value;
-      this.chantInput.classList.remove("interim");
     });
 
     // On some mobile browsers, explicit focus from a touch gesture is needed
@@ -176,10 +208,6 @@ class Hud {
       this.chantInput.focus({ preventScroll: true });
     });
 
-    this.chantInput.addEventListener("paste", (event) => {
-      // Let browser handle paste naturally; input listener syncs buffer state.
-      this.chantInput.classList.remove("interim");
-    });
 
     this.chantInput.addEventListener("focus", () => {
       onTypingStateChange(true);
@@ -205,7 +233,7 @@ class Hud {
       this.setMicStatus("unsupported in this browser");
     }
 
-    chantPanel.append(this.chantInput, this.chantButton, this.micLanguageSelect, this.micButton);
+    chantPanel.append(this.chantPresetSelect, this.chantInput, this.chantButton, this.micLanguageSelect, this.micButton);
     this.root.append(this.stats, chantPanel, this.message, this.micStatus, this.browserHint);
     document.body.append(this.root);
     document.body.append(this.endgameOverlay);
@@ -279,7 +307,29 @@ class Hud {
   clearChantInput() {
     this.manualChantBuffer = "";
     this.chantInput.classList.remove("interim");
+    if (this.chantPresetSelect) {
+      this.chantPresetSelect.value = "";
+    }
     this.syncChantInput();
+  }
+
+  submitChant(onChant) {
+    const chosen = (this.chantPresetSelect?.value || "").trim();
+    const typedOrMic = (this.manualChantBuffer || "").trim();
+    const value = chosen || typedOrMic;
+
+    if (!value) {
+      this.setMessage("Pick an allowed chant from the list or use mic.");
+      return;
+    }
+
+    onChant(value);
+    this.clearChantInput();
+    this.collapseChantKeyboard();
+  }
+
+  collapseChantKeyboard() {
+    this.chantInput.blur();
   }
 
   showEndgame(summary, tip, options = {}) {

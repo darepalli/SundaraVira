@@ -71,6 +71,20 @@ class StageScene extends Phaser.Scene {
     this.isStageTransitioning = false;
     this.isGameOver = false;
     this.transitionFallbackTimeoutId = null;
+    this.capturedKeyCodes = [
+      Phaser.Input.Keyboard.KeyCodes.LEFT,
+      Phaser.Input.Keyboard.KeyCodes.RIGHT,
+      Phaser.Input.Keyboard.KeyCodes.UP,
+      Phaser.Input.Keyboard.KeyCodes.A,
+      Phaser.Input.Keyboard.KeyCodes.D,
+      Phaser.Input.Keyboard.KeyCodes.W,
+      Phaser.Input.Keyboard.KeyCodes.Q,
+      Phaser.Input.Keyboard.KeyCodes.E,
+      Phaser.Input.Keyboard.KeyCodes.F,
+      Phaser.Input.Keyboard.KeyCodes.J,
+      Phaser.Input.Keyboard.KeyCodes.K,
+      Phaser.Input.Keyboard.KeyCodes.ENTER
+    ];
 
     this.hud = null;
     this.bhaktiInput = new window.BhaktiInput();
@@ -224,6 +238,11 @@ class StageScene extends Phaser.Scene {
         this.setEnemyPauseForTyping(typing);
         if (this.input?.keyboard) {
           this.input.keyboard.enabled = !typing;
+          if (typing) {
+            this.input.keyboard.removeCapture(this.capturedKeyCodes);
+          } else {
+            this.input.keyboard.addCapture(this.capturedKeyCodes);
+          }
         }
       },
       (value) => this.bhaktiInput.evaluate(value).success
@@ -264,20 +283,7 @@ class StageScene extends Phaser.Scene {
     };
 
     keyboard.enabled = true;
-    keyboard.addCapture([
-      Phaser.Input.Keyboard.KeyCodes.LEFT,
-      Phaser.Input.Keyboard.KeyCodes.RIGHT,
-      Phaser.Input.Keyboard.KeyCodes.UP,
-      Phaser.Input.Keyboard.KeyCodes.A,
-      Phaser.Input.Keyboard.KeyCodes.D,
-      Phaser.Input.Keyboard.KeyCodes.W,
-      Phaser.Input.Keyboard.KeyCodes.Q,
-      Phaser.Input.Keyboard.KeyCodes.E,
-      Phaser.Input.Keyboard.KeyCodes.F,
-      Phaser.Input.Keyboard.KeyCodes.J,
-      Phaser.Input.Keyboard.KeyCodes.K,
-      Phaser.Input.Keyboard.KeyCodes.ENTER
-    ]);
+    keyboard.addCapture(this.capturedKeyCodes);
   }
 
   update() {
