@@ -348,6 +348,9 @@ class StageScene extends Phaser.Scene {
   createWorld() {
     this.cameras.main.setBackgroundColor(this.stageData.backgroundColor);
     this.platforms = this.physics.add.staticGroup();
+    const compactViewport = window.innerWidth <= 900 || window.innerHeight <= 760;
+    const tinyViewport = window.innerWidth <= 480 || window.innerHeight <= 640;
+    const shortViewport = window.innerHeight <= 500;
 
     this.titleText = this.add.text(20, 16, "Sundara Vira", {
       color: "#ffd060",
@@ -361,14 +364,30 @@ class StageScene extends Phaser.Scene {
 
     this.controlsText = this.add.text(20, 50, "Move: A/D/Arrows | Jump: W/Up | Attack: J (light) K (heavy) | Size: Q/E after chant | F: Bhakti Blast", {
       color: "#8894b8",
-      fontSize: "12px"
+      fontSize: compactViewport ? "11px" : "12px",
+      wordWrap: { width: compactViewport ? 520 : 900 }
     });
 
     this.objectiveText = this.add.text(20, 72, this.stageData.objectiveText, {
       color: "#c8d4ff",
-      fontSize: "13px",
-      fontStyle: "italic"
+      fontSize: compactViewport ? "12px" : "13px",
+      fontStyle: "italic",
+      wordWrap: { width: compactViewport ? 460 : 780 }
     });
+
+    if (compactViewport) {
+      this.titleText.setFontSize(tinyViewport ? "14px" : "16px");
+      this.controlsText.setVisible(false);
+      this.objectiveText.setY(42);
+    }
+
+    if (shortViewport) {
+      this.titleText.setVisible(false);
+      this.controlsText.setVisible(false);
+      this.objectiveText.setFontSize("11px");
+      this.objectiveText.setY(16);
+      this.objectiveText.setAlpha(0.85);
+    }
 
     this.goalLabelText = this.add.text(this.stageData.goal.labelX, this.stageData.goal.labelY, this.stageData.goal.label, {
       color: "#d8ffe0",

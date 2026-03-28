@@ -33,7 +33,8 @@ canvas {
 .hud {
   position: fixed;
   left: 50%;
-  bottom: 16px;
+  top: 10px;
+  bottom: auto;
   transform: translateX(-50%);
   width: min(920px, calc(100% - 24px));
   background: rgba(4, 6, 18, 0.88);
@@ -45,6 +46,8 @@ canvas {
   box-shadow: 0 -2px 24px rgba(0, 0, 0, 0.60), inset 0 1px 0 rgba(255,200,80,0.08);
   z-index: 20;
   pointer-events: auto;
+  max-height: min(40vh, 260px);
+  overflow-y: auto;
 }
 
 .hud.auto-offer-success {
@@ -288,7 +291,7 @@ button:hover {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 0 8px 10px;
+  padding: 0 8px calc(10px + env(safe-area-inset-bottom));
   pointer-events: none;
   z-index: 30;
 }
@@ -308,13 +311,13 @@ button:hover {
 }
 
 .touch-btn {
-  width: 74px;
-  height: 74px;
+  width: clamp(54px, 12vw, 74px);
+  height: clamp(54px, 12vw, 74px);
   background: rgba(16, 24, 72, 0.78);
   border: 2px solid rgba(140, 170, 255, 0.55);
   border-radius: 14px;
   color: #dde4ff;
-  font-size: 30px;
+  font-size: clamp(22px, 3.8vw, 30px);
   font-weight: bold;
   cursor: pointer;
   pointer-events: auto;
@@ -356,16 +359,17 @@ button:hover {
 }
 
 .touch-btn-size {
-  width: 64px;
-  height: 64px;
-  font-size: 24px;
+  width: clamp(48px, 10vw, 64px);
+  height: clamp(48px, 10vw, 64px);
+  font-size: clamp(18px, 3vw, 24px);
   background: rgba(20, 70, 30, 0.78);
   border-color: rgba(90, 210, 90, 0.60);
 }
 
-/* Push HUD up above touch buttons on touch devices */
+/* Keep HUD pinned at top on touch devices too */
 body.touch-active .hud {
-  bottom: 140px;
+  top: 8px;
+  bottom: auto;
 }
 
 /* Shrink and re-center bhakti column so it doesn't clash with left cluster */
@@ -375,4 +379,205 @@ body.touch-active .bhakti-column {
 
 body.touch-active .bhakti-track {
   height: 150px;
+}
+
+/* ── Responsive layout: keep gameplay area clear on smaller screens ── */
+@media (max-width: 900px), (max-height: 760px) {
+  .hud {
+    width: calc(100% - 12px);
+    left: 6px;
+    right: 6px;
+    transform: none;
+    top: 6px;
+    bottom: auto;
+    padding: 7px;
+    border-radius: 10px;
+    max-height: min(42vh, 250px);
+    overflow-y: auto;
+  }
+
+  .stats {
+    margin-bottom: 6px;
+    padding-bottom: 5px;
+  }
+
+  .stat-bar-row {
+    gap: 6px;
+    margin-bottom: 3px;
+  }
+
+  .stat-label {
+    width: 62px;
+    font-size: 11px;
+  }
+
+  .stat-bar-track {
+    height: 10px;
+  }
+
+  .chant-panel {
+    gap: 6px;
+  }
+
+  .chant-input {
+    min-width: 0;
+    flex-basis: 100%;
+    font-size: 13px;
+    padding: 7px 8px;
+  }
+
+  .mic-language {
+    min-width: 118px;
+    padding: 7px 8px;
+    font-size: 12px;
+  }
+
+  button {
+    padding: 7px 9px;
+    font-size: 12px;
+  }
+
+  .message,
+  .mic-status,
+  .browser-hint {
+    margin-top: 5px;
+    font-size: 11px;
+  }
+
+  .bhakti-column {
+    left: 6px;
+    top: 34%;
+  }
+
+  .bhakti-track {
+    height: 132px;
+    width: 20px;
+  }
+
+  .bhakti-label {
+    letter-spacing: 1px;
+    font-size: 10px;
+  }
+
+  .touch-controls {
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .touch-cluster,
+  .touch-row {
+    gap: 7px;
+  }
+}
+
+@media (max-width: 480px), (max-height: 640px) {
+  .hud {
+    max-height: min(38vh, 215px);
+    padding: 6px;
+  }
+
+  .stat-label {
+    width: 56px;
+    font-size: 10px;
+  }
+
+  .stat-value {
+    width: 24px;
+    font-size: 11px;
+  }
+
+  .touch-controls {
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  }
+
+  .bhakti-column {
+    top: 30%;
+  }
+}
+
+/* Ultra-compact mode for short landscape screens (most phones rotated) */
+@media (max-height: 500px) and (orientation: landscape) {
+  .hud {
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    width: auto;
+    max-height: 28vh;
+    padding: 5px;
+    border-radius: 8px;
+  }
+
+  .stats {
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+  }
+
+  .stat-label {
+    width: 52px;
+    font-size: 10px;
+  }
+
+  .stat-bar-track {
+    height: 8px;
+  }
+
+  .stat-value,
+  .stat-fragments {
+    font-size: 10px;
+  }
+
+  .chant-panel {
+    gap: 4px;
+  }
+
+  .chant-input,
+  .mic-language,
+  button {
+    font-size: 11px;
+    padding: 6px 7px;
+  }
+
+  .message,
+  .mic-status,
+  .browser-hint {
+    display: none;
+  }
+
+  .touch-controls {
+    padding: 0 4px calc(4px + env(safe-area-inset-bottom));
+  }
+
+  .touch-cluster,
+  .touch-row {
+    gap: 5px;
+  }
+
+  .touch-btn {
+    width: clamp(44px, 10vh, 56px);
+    height: clamp(44px, 10vh, 56px);
+    font-size: clamp(18px, 4vh, 24px);
+    border-radius: 10px;
+  }
+
+  .touch-btn-size {
+    width: clamp(40px, 8.5vh, 50px);
+    height: clamp(40px, 8.5vh, 50px);
+    font-size: clamp(15px, 3vh, 20px);
+  }
+
+  .bhakti-column {
+    left: 4px;
+    top: 24%;
+    gap: 4px;
+  }
+
+  .bhakti-track {
+    width: 16px;
+    height: 92px;
+  }
+
+  .bhakti-label,
+  .bhakti-value-text {
+    font-size: 9px;
+  }
 }
