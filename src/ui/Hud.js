@@ -513,6 +513,74 @@ class Hud {
     this._gyroToggleBtn = null;
   }
 
+  /** Hide the touch-controls cluster (e.g. on PC where keyboard is used). */
+  hideTouchControls() {
+    if (this._touchControlsEl) this._touchControlsEl.hidden = true;
+  }
+
+  /** Reveal touch controls (e.g. when ?buttons=1 is set by the user). */
+  showTouchControls() {
+    if (this._touchControlsEl) this._touchControlsEl.hidden = false;
+  }
+
+  /**
+   * Display a one-time modal asking the player to enable tilt/motion controls.
+   * Should only be called on iOS 13+ where DeviceOrientationEvent.requestPermission exists.
+   * @param {() => void} onAccept  Called when the player taps "Enable Tilt"
+   * @param {() => void} onSkip   Called when the player taps "Skip"
+   */
+  showGyroPermissionModal(onAccept, onSkip) {
+    if (this._gyroModal) return; // guard against double-call
+
+    const overlay = document.createElement("div");
+    overlay.className = "endgame-overlay";
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-label", "Enable tilt controls");
+
+    const card = document.createElement("div");
+    card.className = "endgame-card";
+
+    const title = document.createElement("h2");
+    title.className = "endgame-title";
+    title.textContent = "Tilt to Move";
+
+    const body = document.createElement("p");
+    body.className = "endgame-summary";
+    body.textContent = "This game can use your phone\u2019s motion sensors so you steer by tilting \u2014 no buttons needed. Allow motion access?";
+
+    const hint = document.createElement("p");
+    hint.className = "endgame-tip";
+    hint.textContent = "You can always switch back using the Gyro button.";
+
+    const btnRow = document.createElement("div");
+    btnRow.style.cssText = "display:flex;gap:12px;justify-content:center;margin-top:4px";
+
+    const acceptBtn = document.createElement("button");
+    acceptBtn.type = "button";
+    acceptBtn.textContent = "Enable Tilt";
+    acceptBtn.style.cssText = "flex:1;max-width:180px";
+
+    const skipBtn = document.createElement("button");
+    skipBtn.type = "button";
+    skipBtn.textContent = "Skip";
+    skipBtn.style.cssText = "flex:1;max-width:120px;opacity:0.7";
+
+    const dismiss = () => {
+      overlay.remove();
+      this._gyroModal = null;
+    };
+
+    acceptBtn.addEventListener("click", () => { dismiss(); onAccept(); });
+    skipBtn.addEventListener("click",   () => { dismiss(); onSkip();   });
+
+    btnRow.append(acceptBtn, skipBtn);
+    card.append(title, body, hint, btnRow);
+    overlay.append(card);
+    document.body.append(overlay);
+    this._gyroModal = overlay;
+  }
+
   /**
    * Show or hide the gyro-toggle button.
    * Called by StageScene once DeviceOrientationEvent support is confirmed.
@@ -557,6 +625,8 @@ class Hud {
     this.root.remove();
     this.endgameOverlay.remove();
     this._bhaktiColumn.remove();
+    this._gyroModal?.remove();
+    this._gyroModal = null;
     this.destroyTouchControls();
     document.body.classList.remove("touch-active");
   }

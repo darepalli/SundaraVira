@@ -298,11 +298,22 @@ class StageScene extends Phaser.Scene {
         window.removeEventListener("deviceorientation", onFirstOrientation, true);
         window.clearTimeout(swipeNavFallbackId);
       });
+    } else if (needsPermissionPrompt) {
+      // iOS 13+: show a one-time modal asking to enable tilt controls.
+      this._promptIosGyroPermission();
     } else {
-      // No auto-detectable gyro (unsupported or iOS permission gate) —
-      // activate swipe navigation immediately so the phone is playable.
+      // DeviceOrientationEvent not available at all — swipe nav only.
       this.gyroInput.enableSwipeNav();
     }
+
+    // PC: hide touch buttons unless the player explicitly requests them with ?buttons=1
+    const forceButtons = new URLSearchParams(window.location.search).get("buttons") === "1";
+    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches ||
+      "ontouchstart" in window;
+    if (!isTouchDevice && !forceButtons) {
+      this.hud.hideTouchControls();
+    }
+
     if (this.debugTransitionsEnabled) {
       this.createDebugOverlay();
       this.updateDebugOverlay();
@@ -542,6 +553,56 @@ class StageScene extends Phaser.Scene {
       onGyroCalibrate: () => { this.gyroInput?.calibrate(); this.hud.setMessage("Gyro recalibrated to current tilt."); }
     });
     document.body.classList.add("touch-active");
+  }
+
+  /**
+   * iOS 13+: show the one-time tilt-permission modal.
+   * Reads/writes localStorage key "sv_gyro_permission_v1" so the modal only
+   * appears once.  Subsequent visits use the stored answer immediately.
+   */
+  async _promptIosGyroPermission() {
+    const STORAGE_KEY = "sv_gyro_permission_v1";
+    let stored = null;
+    try { stored = window.localStorage?.getItem(STORAGE_KEY); } catch (_) {}
+
+    if (stored === "granted") {
+      const ok = await this.gyroInput?.requestPermission();
+      if (ok && this.gyroInput) {
+        this.gyroInput.disableSwipeNav();
+        this.gyroInput.start();
+        this.hud.setGyroActive(true);
+        return;
+      }
+    }
+
+    if (stored === "denied") {
+      this.gyroInput?.enableSwipeNav();
+      return;
+    }
+
+    // First time: enable swipe-nav as an interim fallback so the player can
+    // act immediately while the modal is visible.
+    this.gyroInput?.enableSwipeNav();
+
+    this.hud.showGyroPermissionModal(
+      async () => {
+        // Player tapped "Enable Tilt"
+        const granted = await this.gyroInput?.requestPermission();
+        try { window.localStorage?.setItem(STORAGE_KEY, granted ? "granted" : "denied"); } catch (_) {}
+        if (granted && this.gyroInput) {
+          this.gyroInput.disableSwipeNav();
+          this.gyroInput.start();
+          this.hud.setGyroActive(true);
+        } else {
+          this.hud.setMessage("Motion access denied. Swipe left/right to move, tap to stop.");
+        }
+      },
+      () => {
+        // Player tapped "Skip"
+        try { window.localStorage?.setItem(STORAGE_KEY, "denied"); } catch (_) {}
+        // swipe-nav is already active — nothing more to do
+      }
+    );
   }
 
   async _onGyroToggle() {
