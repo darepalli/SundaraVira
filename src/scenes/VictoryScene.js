@@ -40,8 +40,11 @@ class VictoryScene extends Phaser.Scene {
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     replayButton.on("pointerdown", () => {
+      document.getElementById("sv-contribute-overlay")?.remove();
       this.scene.start("MenuScene");
     });
+
+    window.ContributeForm?.maybeShow({ outcome: "victory" });
   }
 }
 

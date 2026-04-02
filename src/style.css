@@ -380,6 +380,78 @@ button:hover {
   border-color: rgba(90, 210, 90, 0.60);
 }
 
+/* ── Gyro indicator panel (replaces D-pad when gyro is active) ─── */
+.gyro-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+/* Pill-shaped track that shows tilt direction */
+.gyro-indicator {
+  width: 68px;
+  height: 36px;
+  background: rgba(10, 18, 60, 0.82);
+  border: 2px solid rgba(100, 160, 255, 0.55);
+  border-radius: 18px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Ball moves left/right via JS transform to show tilt */
+.gyro-ball {
+  width: 22px;
+  height: 22px;
+  background: radial-gradient(circle at 38% 35%, #9cd4ff, #1a55cc);
+  border-radius: 50%;
+  position: absolute;
+  transition: transform 0.05s linear;
+  box-shadow: 0 0 8px rgba(100, 180, 255, 0.75);
+  pointer-events: none;
+}
+
+.gyro-hint {
+  font-size: 9px;
+  color: rgba(180, 210, 255, 0.72);
+  text-align: center;
+  line-height: 1.4;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Calibrate button */
+.touch-btn-calibrate {
+  background: rgba(14, 50, 80, 0.78);
+  border-color: rgba(70, 155, 210, 0.60);
+  width: clamp(44px, 10vw, 58px);
+  height: clamp(44px, 10vw, 58px);
+  font-size: clamp(18px, 3vw, 24px);
+}
+
+/* Gyro/Keys toggle button */
+.touch-btn-gyro-toggle {
+  background: rgba(18, 18, 55, 0.78);
+  border-color: rgba(120, 120, 200, 0.55);
+  width: clamp(48px, 11vw, 64px);
+  height: clamp(36px, 8vw, 46px);
+  font-size: clamp(11px, 2.2vw, 14px);
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+.touch-btn-gyro-toggle:active,
+.touch-btn-gyro-toggle.touch-btn-held {
+  background: rgba(50, 40, 160, 0.88);
+  border-color: rgba(180, 160, 255, 0.90);
+}
+
 /* Keep HUD pinned at top on touch devices too */
 body.touch-active .hud {
   top: 8px;
@@ -600,5 +672,234 @@ body.touch-active .bhakti-track {
   .bhakti-label,
   .bhakti-value-text {
     font-size: 9px;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Contribute / Feedback Form overlay
+   ═══════════════════════════════════════════════════════════ */
+
+.sv-cf-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 6, 18, 0.82);
+  z-index: 50;
+  padding: 16px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sv-cf-card {
+  width: min(540px, 100%);
+  background: linear-gradient(155deg, rgba(10, 14, 40, 0.98), rgba(6, 8, 24, 0.98));
+  border: 1px solid rgba(180, 130, 40, 0.55);
+  border-top: 1px solid rgba(255, 200, 80, 0.35);
+  border-radius: 18px;
+  box-shadow:
+    0 0 60px rgba(160, 80, 0, 0.25),
+    0 28px 70px rgba(0, 0, 0, 0.75),
+    inset 0 1px 0 rgba(255, 200, 80, 0.10);
+  padding: 28px 28px 24px;
+  animation: sv-cf-rise 0.30s ease-out both;
+}
+
+.sv-cf-card-thanks {
+  text-align: center;
+  padding: 36px 28px;
+}
+
+@keyframes sv-cf-rise {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+.sv-cf-heading {
+  margin: 0 0 6px;
+  color: #ffd37a;
+  font-size: clamp(18px, 4vw, 24px);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-weight: bold;
+  text-shadow: 0 0 18px rgba(255, 160, 20, 0.55);
+  letter-spacing: 0.4px;
+}
+
+.sv-cf-sub {
+  margin: 0 0 18px;
+  color: #c8d4f8;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Role pills ─────────────────────────────────────────── */
+.sv-cf-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.sv-cf-role-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  background: rgba(20, 28, 72, 0.80);
+  border: 1.5px solid rgba(100, 130, 210, 0.45);
+  border-radius: 12px;
+  padding: 9px 13px 8px;
+  color: #d8e2ff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, transform 0.08s;
+  min-width: 108px;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.sv-cf-role-pill:hover {
+  background: rgba(40, 55, 120, 0.88);
+  border-color: rgba(160, 180, 255, 0.70);
+}
+
+.sv-cf-role-pill:active {
+  transform: scale(0.95);
+}
+
+.sv-cf-role-pill.sv-cf-role-selected {
+  background: rgba(120, 80, 0, 0.50);
+  border-color: rgba(255, 190, 60, 0.80);
+  color: #ffe080;
+}
+
+.sv-cf-role-hint {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(180, 200, 255, 0.60);
+  line-height: 1.2;
+}
+
+.sv-cf-role-pill.sv-cf-role-selected .sv-cf-role-hint {
+  color: rgba(255, 220, 120, 0.70);
+}
+
+/* ── Contact section ────────────────────────────────────── */
+.sv-cf-contact {
+  margin-bottom: 14px;
+}
+
+.sv-cf-contact-label {
+  display: block;
+  color: #b0c0f0;
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.sv-cf-contact-input {
+  width: 100%;
+  background: rgba(8, 12, 36, 0.85);
+  border: 1.5px solid rgba(100, 130, 200, 0.50);
+  border-radius: 10px;
+  color: #e8eeff;
+  font-size: 15px;
+  padding: 10px 13px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sv-cf-contact-input:focus {
+  border-color: rgba(200, 170, 60, 0.80);
+  box-shadow: 0 0 0 3px rgba(200, 150, 30, 0.18);
+}
+
+.sv-cf-contact-input::placeholder {
+  color: rgba(150, 165, 210, 0.50);
+}
+
+.sv-cf-contact-note {
+  margin: 6px 0 0;
+  color: rgba(140, 160, 210, 0.60);
+  font-size: 11px;
+}
+
+/* ── Validation message ─────────────────────────────────── */
+.sv-cf-validation {
+  margin: 0 0 10px;
+  color: #ff9966;
+  font-size: 13px;
+  min-height: 18px;
+}
+
+/* ── Action row ─────────────────────────────────────────── */
+.sv-cf-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.sv-cf-submit {
+  background: linear-gradient(135deg, #c87820, #e0a030);
+  border: none;
+  border-radius: 10px;
+  color: #0a0c18;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 11px 28px;
+  cursor: pointer;
+  transition: filter 0.12s, transform 0.08s;
+  letter-spacing: 0.3px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.sv-cf-submit:hover  { filter: brightness(1.12); }
+.sv-cf-submit:active { transform: scale(0.96); }
+
+.sv-cf-skip {
+  background: none;
+  border: none;
+  color: rgba(160, 175, 220, 0.65);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 2px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sv-cf-skip:hover { color: rgba(200, 210, 255, 0.85); }
+
+/* ── Thanks state ───────────────────────────────────────── */
+.sv-cf-thanks-icon {
+  font-size: 52px;
+  margin-bottom: 12px;
+  line-height: 1;
+}
+
+/* ── Compact / mobile adjustments ──────────────────────── */
+@media (max-width: 480px) {
+  .sv-cf-card {
+    padding: 20px 16px 18px;
+    border-radius: 14px;
+  }
+
+  .sv-cf-role-pill {
+    min-width: calc(50% - 4px);
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  .sv-cf-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sv-cf-submit {
+    text-align: center;
   }
 }

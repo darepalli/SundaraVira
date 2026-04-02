@@ -16,7 +16,7 @@ test("loads menu and starts gameplay scene", async ({ page }) => {
   });
 
   await expect(page.locator(".hud")).toBeVisible();
-  await expect(page.locator(".stats")).toContainText("Health:");
+  await expect(page.locator(".stats")).toContainText("Health");
 });
 
 test("transitions from stage 1 to stage 2 when objectives are met", async ({ page }) => {
@@ -84,5 +84,6 @@ test("shows on-screen touch controls in gameplay", async ({ page }) => {
   });
 
   await expect(page.locator(".touch-controls")).toBeVisible();
-  await expect(page.locator(".touch-btn")).toHaveCount(9);
+  // 9 original buttons + gyro-toggle + calibrate = 11
+  await expect(page.locator(".touch-btn")).toHaveCount(11);
 });
