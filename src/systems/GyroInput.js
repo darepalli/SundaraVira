@@ -203,7 +203,20 @@ class GyroInput {
   // ── Private event handlers ─────────────────────────────────────────
 
   _onOrientation(event) {
-    this.gamma = event.gamma ?? 0;
+    // Remap the tilt axis for landscape orientations.
+    // In portrait (angle 0/180) gamma is the left/right roll we need.
+    // In landscape the device has rotated 90° so beta becomes left/right.
+    const angle = screen.orientation?.angle ?? 0;
+    if (angle === 90) {
+      // Landscape: top of phone pointing left — beta maps to left/right, negated.
+      this.gamma = -(event.beta ?? 0);
+    } else if (angle === 270 || angle === -90) {
+      // Landscape: top of phone pointing right — beta maps to left/right.
+      this.gamma = (event.beta ?? 0);
+    } else {
+      // Portrait (0) or upside-down portrait (180).
+      this.gamma = event.gamma ?? 0;
+    }
   }
 
   _onMotion(event) {

@@ -498,6 +498,8 @@ class Hud {
     rightCluster.append(sizeRow, actionRow);
 
     // ── Assemble ───────────────────────────────────────────────────
+    this._leftCluster = leftCluster;
+    this._rightCluster = rightCluster;
     this._touchControlsEl = document.createElement("div");
     this._touchControlsEl.className = "touch-controls";
     this._touchControlsEl.append(leftCluster, rightCluster);
@@ -507,10 +509,22 @@ class Hud {
   destroyTouchControls() {
     this._touchControlsEl?.remove();
     this._touchControlsEl = null;
+    this._leftCluster = null;
+    this._rightCluster = null;
     this._gyroPanel = null;
     this._gyroBall = null;
     this._dpadEls = null;
     this._gyroToggleBtn = null;
+  }
+
+  /** Hide the left nav cluster (d-pad, jump, gyro panel). */
+  hideNavCluster() {
+    if (this._leftCluster) this._leftCluster.hidden = true;
+  }
+
+  /** Reveal the left nav cluster (e.g. when ?buttons=1). */
+  showNavCluster() {
+    if (this._leftCluster) this._leftCluster.hidden = false;
   }
 
   /** Hide the touch-controls cluster (e.g. on PC where keyboard is used). */
