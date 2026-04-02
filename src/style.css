@@ -305,6 +305,15 @@ button:hover {
   z-index: 30;
 }
 
+/* Ensure [hidden] attribute beats any display: flex / display: flex overrides */
+.touch-controls[hidden],
+.touch-cluster[hidden],
+.touch-row[hidden],
+.touch-btn[hidden],
+.gyro-panel[hidden] {
+  display: none !important;
+}
+
 .touch-cluster {
   display: flex;
   flex-direction: column;

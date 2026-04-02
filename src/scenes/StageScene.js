@@ -262,6 +262,22 @@ class StageScene extends Phaser.Scene {
       this.hud.showGyroToggle(true);
     }
 
+    // Determine whether the player has a coarse-pointer (touch) device.
+    const _isTouchDevice = window.matchMedia("(pointer: coarse)").matches ||
+      "ontouchstart" in window;
+    const _forceButtons = new URLSearchParams(window.location.search).get("buttons") === "1";
+
+    if (!_forceButtons) {
+      if (!_isTouchDevice) {
+        // PC / keyboard device: hide all on-screen buttons.
+        this.hud.hideTouchControls();
+      } else {
+        // Mobile: hide only the navigation cluster — gyro/swipe handles movement.
+        // Action buttons (attack, size, blast) remain visible.
+        this.hud.hideNavCluster();
+      }
+    }
+
     // Auto-activate gyro on devices that fire orientation events without a
     // permission prompt (Android, desktop with a sensor).  The first real
     // event that carries a non-null gamma value is enough to confirm the
@@ -304,14 +320,6 @@ class StageScene extends Phaser.Scene {
     } else {
       // DeviceOrientationEvent not available at all — swipe nav only.
       this.gyroInput.enableSwipeNav();
-    }
-
-    // PC: hide touch buttons unless the player explicitly requests them with ?buttons=1
-    const forceButtons = new URLSearchParams(window.location.search).get("buttons") === "1";
-    const isTouchDevice = window.matchMedia("(pointer: coarse)").matches ||
-      "ontouchstart" in window;
-    if (!isTouchDevice && !forceButtons) {
-      this.hud.hideTouchControls();
     }
 
     if (this.debugTransitionsEnabled) {
