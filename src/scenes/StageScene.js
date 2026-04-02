@@ -261,6 +261,48 @@ class StageScene extends Phaser.Scene {
     if (this.gyroInput.isSupported) {
       this.hud.showGyroToggle(true);
     }
+
+    // Auto-activate gyro on devices that fire orientation events without a
+    // permission prompt (Android, desktop with a sensor).  The first real
+    // event that carries a non-null gamma value is enough to confirm the
+    // phone is actually moving; at that point we hide the D-pad buttons and
+    // switch to tilt-steering automatically.
+    //
+    // iOS 13+ requires an explicit user-gesture permission call, so we skip
+    // auto-detection there (DeviceOrientationEvent.requestPermission exists).
+    const needsPermissionPrompt =
+      typeof DeviceOrientationEvent !== "undefined" &&
+      typeof DeviceOrientationEvent.requestPermission === "function";
+
+    if (this.gyroInput.isSupported && !needsPermissionPrompt) {
+      const onFirstOrientation = (event) => {
+        if (event.gamma === null) return; // no real data yet
+        window.removeEventListener("deviceorientation", onFirstOrientation, true);
+        window.clearTimeout(swipeNavFallbackId);
+        if (!this.gyroInput || this.gyroInput.active) return;
+        this.gyroInput.disableSwipeNav();
+        this.gyroInput.start();
+        this.hud.setGyroActive(true);
+      };
+      window.addEventListener("deviceorientation", onFirstOrientation, true);
+
+      // If no real orientation data arrives within 3 s, fall back to swipe navigation.
+      const swipeNavFallbackId = window.setTimeout(() => {
+        window.removeEventListener("deviceorientation", onFirstOrientation, true);
+        if (!this.gyroInput || this.gyroInput.active) return;
+        this.gyroInput.enableSwipeNav();
+      }, 3000);
+
+      // Clean up both when the scene shuts down.
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+        window.removeEventListener("deviceorientation", onFirstOrientation, true);
+        window.clearTimeout(swipeNavFallbackId);
+      });
+    } else {
+      // No auto-detectable gyro (unsupported or iOS permission gate) —
+      // activate swipe navigation immediately so the phone is playable.
+      this.gyroInput.enableSwipeNav();
+    }
     if (this.debugTransitionsEnabled) {
       this.createDebugOverlay();
       this.updateDebugOverlay();
@@ -506,14 +548,16 @@ class StageScene extends Phaser.Scene {
     if (!this.gyroInput) return;
     if (this.gyroInput.active) {
       this.gyroInput.stop();
+      this.gyroInput.enableSwipeNav(); // fall back to swipe navigation
       this.hud.setGyroActive(false);
-      this.hud.setMessage("Gyro off — using on-screen buttons.");
+      this.hud.setMessage("Gyro off — swipe left/right to move, tap to stop.");
     } else {
       const granted = await this.gyroInput.requestPermission();
       if (!granted) {
         this.hud.setMessage("Gyro permission denied. Allow motion sensors in browser settings.");
         return;
       }
+      this.gyroInput.disableSwipeNav(); // gyro takes over movement
       this.gyroInput.start();
       this.hud.setGyroActive(true);
       this.hud.setMessage("Gyro on — tilt to move, shake up to jump, swipe up/down to resize.");
@@ -1140,9 +1184,11 @@ class StageScene extends Phaser.Scene {
   handleMovement() {
     // Gyro tilt: normalised [-1, 1]; 0 when gyro inactive or within dead-zone.
     const gyroTilt = this.gyroInput?.active ? this.gyroInput.getTiltX() : 0;
+    // Swipe-nav direction: -1/0/+1 (persists until tap or reverse swipe).
+    const swipeNavDir = this.gyroInput?.getSwipeNavDir() ?? 0;
 
-    const leftPressed  = this.cursors.left.isDown  || this.keys.left.isDown  || this.touchLeft  || gyroTilt < 0;
-    const rightPressed = this.cursors.right.isDown || this.keys.right.isDown || this.touchRight || this.touchDiag || gyroTilt > 0;
+    const leftPressed  = this.cursors.left.isDown  || this.keys.left.isDown  || this.touchLeft  || gyroTilt < 0 || swipeNavDir < 0;
+    const rightPressed = this.cursors.right.isDown || this.keys.right.isDown || this.touchRight || this.touchDiag || gyroTilt > 0 || swipeNavDir > 0;
     const upPressed    = this.cursors.up.isDown    || this.keys.up.isDown    || this.touchDiag;
 
     const speed = this.playerActor.getMoveSpeed();
