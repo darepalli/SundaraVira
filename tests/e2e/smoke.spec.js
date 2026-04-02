@@ -69,7 +69,10 @@ test("transitions from stage 1 to stage 2 when objectives are met", async ({ pag
 });
 
 test("shows on-screen touch controls in gameplay", async ({ page }) => {
-  await page.goto("/");
+  // Use ?buttons=1 so the controls are visible on the desktop Playwright browser.
+  // On real mobile devices the controls show automatically; on PC they are hidden
+  // by default (keyboard is used instead) unless this flag is set.
+  await page.goto("/?buttons=1");
 
   await page.waitForFunction(() => {
     return Boolean(window.game && window.game.scene && window.game.scene.isActive("MenuScene"));
