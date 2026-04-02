@@ -1,8 +1,13 @@
-import { describe, expect, it, beforeAll } from "vitest";
+import { describe, expect, it, beforeAll, beforeEach } from "vitest";
 
 beforeAll(async () => {
-  await import("../src/data/stageRegistry.js");
   await import("../src/systems/StageLoader.js");
+});
+
+// setup.js resets window.stageRegistry = [] in its own beforeEach.
+// Re-populate it here so tests always see the real registry.
+beforeEach(() => {
+  window.stageRegistry = ["stage1", "stage2-mainaka"];
 });
 
 describe("StageLoader", () => {
