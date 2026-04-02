@@ -36,9 +36,14 @@ class GyroInput {
     // Swipe detection
     this._swipeStartY = null;
     this._swipeStartX = null;
-    this._swipeMinDist = 55;     // px minimum vertical travel for a swipe
+    this._swipeMinDist = 55;     // px minimum travel for a swipe gesture
     this.swipeUpFired = false;   // consumed by scene each frame
     this.swipeDownFired = false;
+
+    // Swipe-navigation fallback (used when gyro is unavailable)
+    this.swipeNavMode = false;   // true → horizontal swipes steer the player
+    this.swipeNavDir  = 0;       // -1 left | 0 stop | +1 right
+    this._swipeTapMaxDist = 14;  // px — movement below this is treated as a tap
 
     // Tilt config
     this.deadZone = 8;   // degrees of tilt ignored (standing-still tolerance)
@@ -99,6 +104,7 @@ class GyroInput {
     window.addEventListener("deviceorientation", this._onOrientation, true);
     window.addEventListener("devicemotion",      this._onMotion,      true);
     this._gammaOffset = this.gamma; // calibrate to current resting position
+    this.swipeNavDir = 0;          // clear any pending swipe-nav direction
     this.active = true;
   }
 
@@ -155,6 +161,29 @@ class GyroInput {
     const v = this.shakeFired;
     this.shakeFired = false;
     return v;
+  }
+
+  /**
+   * Enable swipe-left/right navigation mode.
+   * Horizontal swipes set a persistent movement direction; a tap clears it.
+   * Has no effect when gyro tilt (active) is in use.
+   */
+  enableSwipeNav() {
+    this.swipeNavMode = true;
+  }
+
+  /** Disable swipe-nav mode and clear the stored direction. */
+  disableSwipeNav() {
+    this.swipeNavMode = false;
+    this.swipeNavDir  = 0;
+  }
+
+  /**
+   * Returns the current swipe-nav direction: -1 left, 0 stopped, +1 right.
+   * Always returns 0 when swipeNavMode is false.
+   */
+  getSwipeNavDir() {
+    return this.swipeNavMode ? this.swipeNavDir : 0;
   }
 
   /** Returns and clears the swipe-up flag (large-form trigger). */
@@ -217,7 +246,21 @@ class GyroInput {
     const absDy = Math.abs(dy);
     const absDx = Math.abs(dx);
 
-    // Must travel at least _swipeMinDist vertically
+    if (this.swipeNavMode) {
+      // Tap (minimal movement) → stop moving
+      if (absDx < this._swipeTapMaxDist && absDy < this._swipeTapMaxDist) {
+        this.swipeNavDir = 0;
+        return;
+      }
+
+      // Horizontal swipe → set direction and keep moving until changed
+      if (absDx >= this._swipeMinDist && absDx > absDy * 0.6) {
+        this.swipeNavDir = dx < 0 ? -1 : 1; // left swipe → -1, right swipe → +1
+        return;
+      }
+    }
+
+    // Vertical swipe → size change (existing behaviour)
     if (absDy < this._swipeMinDist) return;
     // Must be more vertical than horizontal (reject diagonal drags)
     if (absDx > absDy * 0.6) return;
