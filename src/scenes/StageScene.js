@@ -87,6 +87,7 @@ class StageScene extends Phaser.Scene {
     ];
 
     this.hud = null;
+    this.gyroInput = null;
     this.bhaktiInput = new window.BhaktiInput();
     this.objectiveSystem = new window.StageObjectiveSystem(ENDGAME_TIPS);
     this.state = {
@@ -219,6 +220,11 @@ class StageScene extends Phaser.Scene {
   create() {
     window.audioManager?.unlock();
 
+    // Re-initialise gyro each time the scene starts (page reload resets all state).
+    this.gyroInput?.destroy();
+    this.gyroInput = new window.GyroInput();
+    this.gyroInput.enableSwipe(); // swipe always active; tilt/shake require toggle
+
     this.createInput();
     this.backgroundLayer = new window.BackgroundLayer(this);
     this.createWorld();
@@ -251,6 +257,10 @@ class StageScene extends Phaser.Scene {
     this._bindTouchControls();
     this.updateHud();
     this.showTouchTutorialIfNeeded();
+    // Show gyro toggle button whenever DeviceOrientationEvent is available.
+    if (this.gyroInput.isSupported) {
+      this.hud.showGyroToggle(true);
+    }
     if (this.debugTransitionsEnabled) {
       this.createDebugOverlay();
       this.updateDebugOverlay();
@@ -264,6 +274,8 @@ class StageScene extends Phaser.Scene {
         this.transitionFallbackTimeoutId = null;
       }
       this.hud?.destroy();
+      this.gyroInput?.destroy();
+      this.gyroInput = null;
     });
   }
 
@@ -312,12 +324,12 @@ class StageScene extends Phaser.Scene {
 
     this.playerActor?.syncLabel();
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.small) || this._touchSmallPending) {
+    if (Phaser.Input.Keyboard.JustDown(this.keys.small) || this._touchSmallPending || this.gyroInput?.consumeSwipeDown()) {
       this._touchSmallPending = false;
       this.tryApplySizeMode("small");
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.large) || this._touchLargePending) {
+    if (Phaser.Input.Keyboard.JustDown(this.keys.large) || this._touchLargePending || this.gyroInput?.consumeSwipeUp()) {
       this._touchLargePending = false;
       this.tryApplySizeMode("large");
     }
@@ -339,6 +351,11 @@ class StageScene extends Phaser.Scene {
 
     if (this.state.health <= 0 && !this.isGameOver) {
       this.enterGameOver();
+    }
+
+    // Update gyro tilt indicator (cosmetic, always safe to run)
+    if (this.gyroInput?.active) {
+      this.hud.updateGyroIndicator(this.gyroInput.getTiltX());
     }
   }
 
@@ -467,20 +484,40 @@ class StageScene extends Phaser.Scene {
 
   _bindTouchControls() {
     this.hud.createTouchControls({
-      onLeftDown:  () => { this.touchLeft = true; },
-      onLeftUp:    () => { this.touchLeft = false; },
-      onRightDown: () => { this.touchRight = true; },
-      onRightUp:   () => { this.touchRight = false; },
-      onJump:      () => { this.touchJumpQueued = true; },
-      onDiagDown:  () => { this.touchDiag = true; },
-      onDiagUp:    () => { this.touchDiag = false; },
-      onAttack:    () => { this._touchAttackPending = true; },
-      onHeavy:     () => { this._touchHeavyPending = true; },
-      onBlast:     () => { this._touchBlastPending = true; },
-      onSmall:     () => { this._touchSmallPending = true; },
-      onLarge:     () => { this._touchLargePending = true; }
+      onLeftDown:      () => { this.touchLeft = true; },
+      onLeftUp:        () => { this.touchLeft = false; },
+      onRightDown:     () => { this.touchRight = true; },
+      onRightUp:       () => { this.touchRight = false; },
+      onJump:          () => { this.touchJumpQueued = true; },
+      onDiagDown:      () => { this.touchDiag = true; },
+      onDiagUp:        () => { this.touchDiag = false; },
+      onAttack:        () => { this._touchAttackPending = true; },
+      onHeavy:         () => { this._touchHeavyPending = true; },
+      onBlast:         () => { this._touchBlastPending = true; },
+      onSmall:         () => { this._touchSmallPending = true; },
+      onLarge:         () => { this._touchLargePending = true; },
+      onGyroToggle:    () => { this._onGyroToggle(); },
+      onGyroCalibrate: () => { this.gyroInput?.calibrate(); this.hud.setMessage("Gyro recalibrated to current tilt."); }
     });
     document.body.classList.add("touch-active");
+  }
+
+  async _onGyroToggle() {
+    if (!this.gyroInput) return;
+    if (this.gyroInput.active) {
+      this.gyroInput.stop();
+      this.hud.setGyroActive(false);
+      this.hud.setMessage("Gyro off — using on-screen buttons.");
+    } else {
+      const granted = await this.gyroInput.requestPermission();
+      if (!granted) {
+        this.hud.setMessage("Gyro permission denied. Allow motion sensors in browser settings.");
+        return;
+      }
+      this.gyroInput.start();
+      this.hud.setGyroActive(true);
+      this.hud.setMessage("Gyro on — tilt to move, shake up to jump, swipe up/down to resize.");
+    }
   }
 
   showTouchTutorialIfNeeded() {
@@ -1101,18 +1138,22 @@ class StageScene extends Phaser.Scene {
   }
 
   handleMovement() {
-    const leftPressed = this.cursors.left.isDown || this.keys.left.isDown || this.touchLeft;
-    const rightPressed = this.cursors.right.isDown || this.keys.right.isDown || this.touchRight || this.touchDiag;
-    const upPressed = this.cursors.up.isDown || this.keys.up.isDown || this.touchDiag;
+    // Gyro tilt: normalised [-1, 1]; 0 when gyro inactive or within dead-zone.
+    const gyroTilt = this.gyroInput?.active ? this.gyroInput.getTiltX() : 0;
+
+    const leftPressed  = this.cursors.left.isDown  || this.keys.left.isDown  || this.touchLeft  || gyroTilt < 0;
+    const rightPressed = this.cursors.right.isDown || this.keys.right.isDown || this.touchRight || this.touchDiag || gyroTilt > 0;
+    const upPressed    = this.cursors.up.isDown    || this.keys.up.isDown    || this.touchDiag;
 
     const speed = this.playerActor.getMoveSpeed();
-    const jump = this.playerActor.getJumpPower();
+    const jump  = this.playerActor.getJumpPower();
 
     let velocityX = 0;
     if (leftPressed) {
-      velocityX = -speed;
+      // Gyro tilt gives proportional speed; button input gives full speed.
+      velocityX = gyroTilt < 0 ? gyroTilt * speed : -speed;
     } else if (rightPressed) {
-      velocityX = speed;
+      velocityX = gyroTilt > 0 ? gyroTilt * speed : speed;
     }
 
     if (this.pointerMoveActive && typeof this.pointerTargetX === "number") {
@@ -1140,6 +1181,12 @@ class StageScene extends Phaser.Scene {
       window.audioManager?.playJump();
       this.playerActor.jump(jump);
       this.touchJumpQueued = false;
+    }
+
+    // Gyro shake up → jump
+    if (this.gyroInput?.consumeShake() && this.playerActor.canJump()) {
+      window.audioManager?.playJump();
+      this.playerActor.jump(jump);
     }
   }
 
@@ -1234,6 +1281,8 @@ class StageScene extends Phaser.Scene {
     this.physics.pause();
     this.setEnemyPauseForTyping(true);
     this.hud.forceStopListening();
+
+    window.ContributeForm?.maybeShow({ outcome: "game-over" });
 
     this.hud.showEndgame(
       "Hanuman has fallen.",
