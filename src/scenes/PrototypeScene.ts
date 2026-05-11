@@ -10,7 +10,37 @@ type PlayerState = {
   sizeMode: "small" | "normal" | "large";
 };
 
+type TutorialStepId = "move" | "jump" | "chant" | "resize" | "blast";
+
 const TARGET_FRAGMENTS = 5;
+
+const TUTORIAL_STEPS: Array<{ id: TutorialStepId; title: string; detail: string }> = [
+  {
+    id: "move",
+    title: "Move",
+    detail: "Use A/D or the arrow keys to run toward fragments and avoid danger."
+  },
+  {
+    id: "jump",
+    title: "Jump",
+    detail: "Press W or Up to jump across platforms and reach higher paths."
+  },
+  {
+    id: "chant",
+    title: "Chant",
+    detail: "Chant is only needed at the Sacred Door after you collect all fragments."
+  },
+  {
+    id: "resize",
+    title: "Resize",
+    detail: "Press Q for small form or E for large form. Small is faster; large gives steadier jumps."
+  },
+  {
+    id: "blast",
+    title: "Defeat Enemies",
+    detail: "Fragments build Bhakti. Once you have enough, press F near enemies to release Bhakti Blast."
+  }
+];
 
 export class PrototypeScene extends Phaser.Scene {
   private player!: Phaser.Physics.Arcade.Sprite;
@@ -23,6 +53,18 @@ export class PrototypeScene extends Phaser.Scene {
 
   private hud!: Hud;
   private bhaktiInput = new BhaktiInput();
+  private tutorialStepIndex = 0;
+  private tutorialCompleted: Record<TutorialStepId, boolean> = {
+    move: false,
+    jump: false,
+    chant: false,
+    resize: false,
+    blast: false
+  };
+  private tutorialFinished = false;
+  private awaitingGateChant = false;
+  private gateOpened = false;
+  private lastVoiceCueAt = 0;
   private state: PlayerState = {
     health: 100,
     bhakti: 0,
@@ -74,12 +116,14 @@ export class PrototypeScene extends Phaser.Scene {
       (value) => this.handleChant(value),
       (active) => {
         if (active) {
-          this.hud.setMessage("Voice mode active. Speak clearly.");
+          this.hud.setMessage(this.awaitingGateChant ? "Voice mode active. Chant to open the Sacred Door." : "Voice mode active. Speak clearly.");
         }
       }
     );
 
+    this.hud.hideGateChant();
     this.updateHud();
+    this.refreshTutorial();
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.hud.destroy();
@@ -180,8 +224,9 @@ export class PrototypeScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.fragments, (_playerObj, fragmentObj) => {
       fragmentObj.destroy();
       this.state.fragments += 1;
-      this.state.bhakti += 4;
+      this.state.bhakti = Math.min(100, this.state.bhakti + 8);
       this.state.dharma += 2;
+      this.speakCue("Jai Siya Ram");
       this.hud.setMessage("Fragment secured. Bhakti rises.");
       this.updateHud();
     });
@@ -200,10 +245,16 @@ export class PrototypeScene extends Phaser.Scene {
 
     this.physics.add.existing(this.goal, true);
     this.physics.add.overlap(this.player, this.goal, () => {
+      if (this.gateOpened) {
+        return;
+      }
+
       if (this.state.fragments >= TARGET_FRAGMENTS) {
-        const bonus = this.state.dharma >= 60 ? "Sacred Victory" : "Warrior Path";
-        this.hud.setMessage(`Mission complete: ${bonus}. Press F5 to play again.`);
-        this.physics.pause();
+        this.awaitingGateChant = true;
+        this.completeTutorialStep("chant");
+        this.player.setVelocity(0, 0);
+        this.hud.showGateChant();
+        this.hud.setMessage("The Sacred Door is sealed. Offer 'Jai Shri Ram' here to open it.");
       } else {
         this.hud.setMessage("Collect all fragments before reaching the beacon.");
       }
@@ -226,6 +277,10 @@ export class PrototypeScene extends Phaser.Scene {
     const rightPressed = this.cursors.right.isDown || this.keys.right.isDown;
     const upPressed = this.cursors.up.isDown || this.keys.up.isDown;
 
+    if (leftPressed || rightPressed) {
+      this.completeTutorialStep("move");
+    }
+
     const speed = this.state.sizeMode === "large" ? 150 : this.state.sizeMode === "small" ? 260 : 210;
     const jump = this.state.sizeMode === "large" ? 320 : this.state.sizeMode === "small" ? 440 : 390;
 
@@ -238,12 +293,18 @@ export class PrototypeScene extends Phaser.Scene {
     }
 
     if (upPressed && this.player.body.blocked.down) {
+      this.completeTutorialStep("jump");
       this.player.setVelocityY(-jump);
     }
   }
 
   private applySizeMode(mode: PlayerState["sizeMode"]): void {
+    if (this.state.sizeMode === mode) {
+      return;
+    }
+
     this.state.sizeMode = mode;
+    this.completeTutorialStep("resize");
 
     if (mode === "small") {
       this.player.setScale(0.65, 0.65);
@@ -262,15 +323,20 @@ export class PrototypeScene extends Phaser.Scene {
 
   private useBhaktiBlast(): void {
     if (this.state.bhakti < 20) {
-      this.hud.setMessage("Not enough Bhakti. Chant or collect fragments.");
+      this.hud.setMessage("Not enough Bhakti. Collect more fragments first.");
       return;
     }
 
     this.state.bhakti -= 20;
     this.state.dharma = Math.min(100, this.state.dharma + 1);
+    let defeatedEnemies = 0;
 
     this.enemies.children.each((enemyObj) => {
       const sprite = enemyObj as Phaser.Physics.Arcade.Sprite;
+      if (!sprite.active) {
+        return;
+      }
+
       const distance = Phaser.Math.Distance.Between(
         this.player.x,
         this.player.y,
@@ -280,36 +346,43 @@ export class PrototypeScene extends Phaser.Scene {
 
       if (distance < 180) {
         sprite.destroy();
+        defeatedEnemies += 1;
       }
     });
 
     this.cameras.main.flash(120, 255, 210, 80);
-    this.hud.setMessage("Bhakti Blast released.");
+    if (defeatedEnemies > 0) {
+      this.completeTutorialStep("blast");
+      this.speakCue("Jai Shri Ram");
+      this.hud.setMessage(`Bhakti Blast released. ${defeatedEnemies} foe${defeatedEnemies > 1 ? "s" : ""} cleared.`);
+    } else {
+      this.hud.setMessage("Bhakti Blast released, but no enemy was close enough.");
+    }
     this.updateHud();
   }
 
   private handleChant(value: string): void {
-    const result = this.bhaktiInput.evaluate(value);
-
-    if (!result.success) {
-      this.state.dharma = Math.max(0, this.state.dharma - 1);
-      this.hud.setMessage("Chant not recognized. Try 'Jai Shri Ram'.");
-      this.updateHud();
+    if (!this.awaitingGateChant) {
+      this.hud.setMessage("Save the chant for the Sacred Door after collecting all fragments.");
       return;
     }
 
-    this.state.bhakti = Math.min(100, this.state.bhakti + result.points);
-    this.state.health = Math.min(100, this.state.health + 4);
-    this.state.dharma = Math.min(100, this.state.dharma + 2);
+    const result = this.bhaktiInput.evaluate(value);
 
-    if (this.state.bhakti >= 75) {
-      this.applySizeMode("large");
-      this.hud.setMessage("Anjaneya surge active. Large form empowered.");
-    } else {
-      this.hud.setMessage(`Chant accepted: ${result.matched}. +${result.points} Bhakti`);
+    if (!result.success) {
+      this.hud.setMessage("The door stays sealed. Offer 'Jai Shri Ram'.");
+      return;
     }
 
-    this.updateHud();
+    this.awaitingGateChant = false;
+    this.gateOpened = true;
+    this.completeTutorialStep("chant");
+    this.hud.hideGateChant();
+    this.speakCue("Jai Shri Ram");
+
+    const bonus = this.state.dharma >= 60 ? "Sacred Victory" : "Warrior Path";
+    this.hud.setMessage(`The Sacred Door opens. Mission complete: ${bonus}. Press F5 to play again.`);
+    this.physics.pause();
   }
 
   private updateHud(): void {
@@ -320,5 +393,64 @@ export class PrototypeScene extends Phaser.Scene {
       fragments: this.state.fragments,
       targetFragments: TARGET_FRAGMENTS
     });
+  }
+
+  private completeTutorialStep(stepId: TutorialStepId): void {
+    if (this.tutorialFinished || this.tutorialCompleted[stepId]) {
+      return;
+    }
+
+    this.tutorialCompleted[stepId] = true;
+
+    while (
+      this.tutorialStepIndex < TUTORIAL_STEPS.length &&
+      this.tutorialCompleted[TUTORIAL_STEPS[this.tutorialStepIndex].id]
+    ) {
+      this.tutorialStepIndex += 1;
+    }
+
+    if (this.tutorialStepIndex >= TUTORIAL_STEPS.length) {
+      this.tutorialFinished = true;
+      this.hud.hideTutorial();
+      this.hud.setMessage("Tutorial complete. Collect all 5 fragments, then reach the Sacred Beacon.");
+      return;
+    }
+
+    this.refreshTutorial();
+  }
+
+  private refreshTutorial(): void {
+    if (this.tutorialFinished) {
+      this.hud.hideTutorial();
+      return;
+    }
+
+    const step = TUTORIAL_STEPS[this.tutorialStepIndex];
+    this.hud.setTutorial(
+      `Tip ${this.tutorialStepIndex + 1}: ${step.title}`,
+      step.detail,
+      `${this.tutorialStepIndex + 1} / ${TUTORIAL_STEPS.length}`
+    );
+  }
+
+  private speakCue(text: string): void {
+    const speech = window.speechSynthesis;
+    if (!speech) {
+      return;
+    }
+
+    const now = window.performance?.now() ?? Date.now();
+    if (now - this.lastVoiceCueAt < 350) {
+      return;
+    }
+
+    this.lastVoiceCueAt = now;
+    speech.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.05;
+    utterance.pitch = 1;
+    utterance.volume = 0.85;
+    speech.speak(utterance);
   }
 }

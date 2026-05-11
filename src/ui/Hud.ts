@@ -9,6 +9,11 @@ type HudStats = {
 export class Hud {
   private readonly root: HTMLDivElement;
   private readonly stats: HTMLDivElement;
+  private readonly tutorial: HTMLDivElement;
+  private readonly tutorialTitle: HTMLDivElement;
+  private readonly tutorialBody: HTMLDivElement;
+  private readonly tutorialProgress: HTMLDivElement;
+  private readonly chantPanel: HTMLDivElement;
   private readonly chantInput: HTMLInputElement;
   private readonly chantButton: HTMLButtonElement;
   private readonly micButton: HTMLButtonElement;
@@ -25,15 +30,31 @@ export class Hud {
     this.stats = document.createElement("div");
     this.stats.className = "stats";
 
-    const chantPanel = document.createElement("div");
-    chantPanel.className = "chant-panel";
+    this.tutorial = document.createElement("div");
+    this.tutorial.className = "tutorial-card";
+    this.tutorial.hidden = true;
+
+    this.tutorialTitle = document.createElement("div");
+    this.tutorialTitle.className = "tutorial-title";
+
+    this.tutorialBody = document.createElement("div");
+    this.tutorialBody.className = "tutorial-body";
+
+    this.tutorialProgress = document.createElement("div");
+    this.tutorialProgress.className = "tutorial-progress";
+
+    this.tutorial.append(this.tutorialTitle, this.tutorialBody, this.tutorialProgress);
+
+    this.chantPanel = document.createElement("div");
+    this.chantPanel.className = "chant-panel";
+    this.chantPanel.hidden = true;
 
     this.chantInput = document.createElement("input");
     this.chantInput.className = "chant-input";
-    this.chantInput.placeholder = "Type chant: Jai Shri Ram";
+    this.chantInput.placeholder = "Chant to open the Sacred Door";
 
     this.chantButton = document.createElement("button");
-    this.chantButton.textContent = "Offer Chant";
+    this.chantButton.textContent = "Open Gate";
     this.chantButton.onclick = () => {
       onChant(this.chantInput.value);
       this.chantInput.value = "";
@@ -56,8 +77,8 @@ export class Hud {
       }
     });
 
-    chantPanel.append(this.chantInput, this.chantButton, this.micButton);
-    this.root.append(this.stats, chantPanel, this.message);
+    this.chantPanel.append(this.chantInput, this.chantButton, this.micButton);
+    this.root.append(this.stats, this.tutorial, this.chantPanel, this.message);
     document.body.append(this.root);
   }
 
@@ -69,6 +90,29 @@ export class Hud {
 
   setMessage(text: string): void {
     this.message.textContent = text;
+  }
+
+  setTutorial(title: string, detail: string, progress = ""): void {
+    this.tutorial.hidden = false;
+    this.tutorialTitle.textContent = title;
+    this.tutorialBody.textContent = detail;
+    this.tutorialProgress.textContent = progress;
+    this.tutorialProgress.hidden = progress.length === 0;
+  }
+
+  hideTutorial(): void {
+    this.tutorial.hidden = true;
+  }
+
+  showGateChant(): void {
+    this.chantPanel.hidden = false;
+    this.chantInput.value = "";
+    this.chantInput.focus();
+  }
+
+  hideGateChant(): void {
+    this.chantPanel.hidden = true;
+    this.chantInput.value = "";
   }
 
   destroy(): void {

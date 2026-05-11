@@ -11,7 +11,7 @@ describe("StageObjectiveSystem", () => {
       stageIndex: 0,
       fragments: 3,
       targetFragments: 5,
-      sizeMode: "large",
+      hasChantOffer: true,
       hasNextStage: true,
       dharma: 50
     });
@@ -19,18 +19,18 @@ describe("StageObjectiveSystem", () => {
     expect(result.type).toBe("missing-fragments");
   });
 
-  it("blocks goal when not in large form", () => {
+  it("blocks goal when chant was not offered", () => {
     const system = new window.StageObjectiveSystem(["tip"]);
     const result = system.evaluateGoalTouch({
       stageIndex: 0,
       fragments: 5,
       targetFragments: 5,
-      sizeMode: "normal",
+      hasChantOffer: false,
       hasNextStage: true,
       dharma: 50
     });
 
-    expect(result.type).toBe("need-large-form");
+    expect(result.type).toBe("need-chant-offer");
   });
 
   it("returns next stage when requirements are met and next stage exists", () => {
@@ -39,7 +39,7 @@ describe("StageObjectiveSystem", () => {
       stageIndex: 0,
       fragments: 5,
       targetFragments: 5,
-      sizeMode: "large",
+      hasChantOffer: true,
       hasNextStage: true,
       dharma: 70
     });
@@ -53,7 +53,7 @@ describe("StageObjectiveSystem", () => {
       stageIndex: 1,
       fragments: 3,
       targetFragments: 3,
-      sizeMode: "large",
+      hasChantOffer: true,
       hasNextStage: false,
       dharma: 70
     });

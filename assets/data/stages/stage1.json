@@ -1,7 +1,7 @@
 {
   "id": "stage1",
   "title": "Stage 1: Sacred Beacon",
-  "objectiveText": "Stage 1: Gather 5 fragments, become Large, and touch the beacon.",
+  "objectiveText": "Stage 1: Gather 5 fragments, offer a chant, and touch the beacon.",
   "backgroundColor": "#0f1533",
   "targetFragments": 5,
   "goal": {

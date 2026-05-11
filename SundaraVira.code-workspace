@@ -4,5 +4,11 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {},
+	"extensions": {
+		"recommendations": [
+			"anytechiestudio.graphify-vscode",
+			"github.copilot-chat"
+		]
+	}
 }

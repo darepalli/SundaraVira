@@ -1,5 +1,6 @@
 class Hud {
-  constructor(onChant, onVoiceState, onTypingStateChange = () => {}, canAutoOffer = () => false) {
+  constructor(onChant, onVoiceState, onTypingStateChange = () => {}, canAutoOffer = () => false, uiLanguage = "en") {
+    this.uiLanguage = ["en", "hi", "te"].includes(uiLanguage) ? uiLanguage : "en";
     this.speech = null;
     this.isMicListening = false;
     this.shouldKeepListening = false;
@@ -66,8 +67,8 @@ class Hud {
     this._bhaktiColumn.append(bhaktiValueEl, bhaktiTrack, bhaktiLabel);
     document.body.append(this._bhaktiColumn);
 
-    const chantPanel = document.createElement("div");
-    chantPanel.className = "chant-panel";
+    this.chantPanel = document.createElement("div");
+    this.chantPanel.className = "chant-panel";
 
     this.chantInput = document.createElement("input");
     this.chantInput.className = "chant-input";
@@ -129,7 +130,12 @@ class Hud {
       option.textContent = optionData.label;
       this.micLanguageSelect.append(option);
     });
-    this.micLanguageSelect.value = "hi-IN";
+    const recognitionLangByUi = {
+      en: "en-IN",
+      hi: "hi-IN",
+      te: "te-IN"
+    };
+    this.micLanguageSelect.value = recognitionLangByUi[this.uiLanguage] || "en-IN";
 
     this.chantButton = document.createElement("button");
     this.chantButton.type = "button";
@@ -233,8 +239,8 @@ class Hud {
       this.setMicStatus("unsupported in this browser");
     }
 
-    chantPanel.append(this.chantPresetSelect, this.chantInput, this.chantButton, this.micLanguageSelect, this.micButton);
-    this.root.append(this.stats, chantPanel, this.message, this.micStatus, this.browserHint);
+    this.chantPanel.append(this.chantPresetSelect, this.chantInput, this.chantButton, this.micLanguageSelect, this.micButton);
+    this.root.append(this.stats, this.chantPanel, this.message, this.micStatus, this.browserHint);
     document.body.append(this.root);
     document.body.append(this.endgameOverlay);
   }
@@ -279,7 +285,13 @@ class Hud {
   }
 
   setMicStatus(text) {
-    this.micStatus.textContent = `Mic status: ${text}`;
+    const prefixByLang = {
+      en: "Mic status",
+      hi: "माइक स्थिति",
+      te: "మైక్ స్థితి"
+    };
+    const prefix = prefixByLang[this.uiLanguage] || prefixByLang.en;
+    this.micStatus.textContent = `${prefix}: ${text}`;
   }
 
   flashAutoOfferSuccess() {
@@ -311,6 +323,28 @@ class Hud {
       this.chantPresetSelect.value = "";
     }
     this.syncChantInput();
+  }
+
+  isAllowedChant(text) {
+    if (!text) return false;
+    const normalized = this.normalizeTranscript(text).toLowerCase().trim();
+    const isAllowed = this.allowedChants.some(chant => {
+      const chantNorm = chant.toLowerCase().trim();
+      return chantNorm === normalized;
+    });
+    return isAllowed;
+  }
+
+  setChantPanelHidden(hidden) {
+    if (this.chantPanel) {
+      this.chantPanel.style.display = hidden ? "none" : "flex";
+    }
+  }
+
+  hideChantPanelCompletely() {
+    if (this.chantPanel) {
+      this.chantPanel.style.display = "none";
+    }
   }
 
   submitChant(onChant) {

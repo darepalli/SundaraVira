@@ -33,6 +33,21 @@ Browser-playable action prototype inspired by Sundarakanda.
 - Build: `npm run build`
 - Preview production build: `npm run preview`
 
+## Versioning and build numbers
+- The launch menu shows the runtime label in the format: `Version X.Y  Build Z`.
+- Current baseline is `Version 1.0  Build 1`.
+- Version source of truth: `src/config/version.js`.
+
+Increment build for normal changes:
+1. From project root run:
+   `py tools/bump_build.py`
+2. Refresh the game page and confirm the new build number in the launch menu.
+
+Start a new major line (for example 2.0):
+1. Run:
+   `py tools/bump_build.py --major 2`
+2. This sets version to `2.0 Build 1`.
+
 ## Automated tests
 Run core gameplay logic checks without launching the webpage:
 

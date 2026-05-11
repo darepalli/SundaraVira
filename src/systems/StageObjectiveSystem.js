@@ -10,7 +10,7 @@ class StageObjectiveSystem {
   }
 
   evaluateGoalTouch(params) {
-    const { stageIndex, fragments, targetFragments, sizeMode, hasNextStage, dharma } = params;
+    const { stageIndex, fragments, targetFragments, hasChantOffer, hasNextStage, dharma } = params;
 
     if (fragments < targetFragments) {
       return {
@@ -21,12 +21,12 @@ class StageObjectiveSystem {
       };
     }
 
-    if (sizeMode !== "large") {
+    if (!hasChantOffer) {
       return {
-        type: "need-large-form",
+        type: "need-chant-offer",
         message: stageIndex === 0
-          ? "The beacon responds only to Large form. Chant and transform."
-          : "Mainaka reveals the path only to Large form. Chant and transform."
+          ? "Offer a chant to open the sacred beacon."
+          : "Offer a chant to open Mainaka's path."
       };
     }
 

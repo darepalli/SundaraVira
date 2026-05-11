@@ -4,7 +4,52 @@ const ENDGAME_TIPS = [
   "Tip: Save Bhakti Blast for tight enemy groups near objectives.",
   "Tip: Large form helps control risky jumps when timing gets tough."
 ];
-const SIZE_SHIFT_WINDOW_MS = 10000;
+
+const BEACON_LISTEN_RADIUS = 160;
+const BEACON_OFFER_RADIUS = 120;
+const MIC_AFTER_FRAGMENT_COOLDOWN_MS = 1200;
+
+const STAGE_I18N = {
+  en: {
+    voiceActive: "Voice mode active. Speak clearly.",
+    chantPrompt: "Offer chant near beacon",
+    listening: "Listening...",
+    listeningStarting: "Starting mic...",
+    listeningReady: "Move close and chant",
+    listeningCollectFirst: "Collect all fragments first",
+    chantNeedsBeacon: "Chant heard. Move near beacon to offer.",
+    chantNotRecognized: "Chant not recognized. Try 'Jai Shri Ram'.",
+    chantAccepted: "Chant accepted: {match}. +{points} Bhakti.",
+    surge: "Anjaneya surge active. Large form empowered.",
+    stageLoadError: "Unable to load next stage data."
+  },
+  hi: {
+    voiceActive: "वॉइस मोड सक्रिय है। स्पष्ट बोलें।",
+    chantPrompt: "बीकन के पास मंत्र बोलें",
+    listening: "सुन रहा है...",
+    listeningStarting: "माइक शुरू हो रहा है...",
+    listeningReady: "बीकन के पास आकर मंत्र बोलें",
+    listeningCollectFirst: "पहले सभी फ्रैगमेंट्स एकत्र करें",
+    chantNeedsBeacon: "मंत्र सुना गया। अर्पण के लिए बीकन के पास आएं।",
+    chantNotRecognized: "मंत्र पहचाना नहीं गया। 'जय श्रीराम' बोलें।",
+    chantAccepted: "मंत्र स्वीकार: {match}. +{points} भक्ति।",
+    surge: "अंजनेय शक्ति सक्रिय। विशाल रूप सशक्त।",
+    stageLoadError: "अगला स्टेज लोड नहीं हो सका।"
+  },
+  te: {
+    voiceActive: "వాయిస్ మోడ్ ఆన్. స్పష్టంగా జపించండి.",
+    chantPrompt: "బీకన్ దగ్గర జపం చేయండి",
+    listening: "వింటోంది...",
+    listeningStarting: "మైక్ ప్రారంభమవుతోంది...",
+    listeningReady: "బీకన్ దగ్గరికి వచ్చి జపించండి",
+    listeningCollectFirst: "ముందు అన్ని ఫ్రాగ్మెంట్లు సేకరించండి",
+    chantNeedsBeacon: "జపం వినబడింది. సమర్పణకు బీకన్ దగ్గరికి రండి.",
+    chantNotRecognized: "జపం గుర్తించలేదు. 'జై శ్రీరామ్' ప్రయత్నించండి.",
+    chantAccepted: "జపం ఆమోదం: {match}. +{points} భక్తి.",
+    surge: "ఆంజనేయ శక్తి సక్రియం. భారీ రూపం బలపడింది.",
+    stageLoadError: "తదుపరి స్టేజ్ లోడ్ కాలేదు."
+  }
+};
 
 function isTransitionDebugEnabled() {
   const fromWindow = Boolean(window.__SV_DEBUG_TRANSITIONS__);
@@ -28,6 +73,7 @@ class StageScene extends Phaser.Scene {
     this.enemies = null;
     this.enemyManager = null;
     this.goal = null;
+    this.beaconPromptText = null;
 
     this.cursors = null;
     this.keys = null;
@@ -49,7 +95,6 @@ class StageScene extends Phaser.Scene {
     this.enemyHitCooldownMs = 900;
     this.isTypingChant = false;
     this.enemyPausedForTyping = false;
-    this.sizeShiftUnlockUntil = 0;
 
     this.titleText = null;
     this.controlsText = null;
@@ -90,17 +135,24 @@ class StageScene extends Phaser.Scene {
     this.gyroInput = null;
     this.bhaktiInput = new window.BhaktiInput();
     this.objectiveSystem = new window.StageObjectiveSystem(ENDGAME_TIPS);
+    this.autoListenTriggered = false;
+    this.beaconListeningIndicator = null;
+    this.uiLanguage = "en";
+    this.lastFragmentCollectedAt = -100000;
     this.state = {
       health: 100,
       bhakti: 0,
       dharma: 50,
       fragments: 0,
-      sizeMode: "normal"
+      sizeMode: "normal",
+      beaconChantOffered: false
     };
   }
 
   init(data) {
     this.debugTransitionsEnabled = isTransitionDebugEnabled();
+    const savedLanguage = window.localStorage.getItem("sv.uiLanguage") || "en";
+    this.uiLanguage = ["en", "hi", "te"].includes(data?.uiLanguage) ? data.uiLanguage : savedLanguage;
     this.stageIndex = Number(data?.stageIndex ?? 0);
     this.stageData = window.StageLoader.getStageData(this.game, this.stageIndex);
     if (!this.stageData) {
@@ -113,7 +165,7 @@ class StageScene extends Phaser.Scene {
     this.state.dharma = 50;
     this.state.fragments = 0;
     this.state.sizeMode = "normal";
-    this.sizeShiftUnlockUntil = 0;
+    this.state.beaconChantOffered = false;
     this.goalResolved = false;
     this.pointerMoveActive = false;
     this.pointerTargetX = null;
@@ -128,6 +180,7 @@ class StageScene extends Phaser.Scene {
     this._touchSmallPending = false;
     this._touchLargePending = false;
     this.lastEnemyHitAt = -1000;
+    this.lastFragmentCollectedAt = -100000;
     this.isTypingChant = false;
     this.enemyPausedForTyping = false;
     this.isStageTransitioning = false;
@@ -147,6 +200,11 @@ class StageScene extends Phaser.Scene {
     this.generateFragmentTexture(g);
     this.generateEnemyTexture(g);
     g.destroy();
+  }
+
+  t(key) {
+    const langMap = STAGE_I18N[this.uiLanguage] || STAGE_I18N.en;
+    return langMap[key] || STAGE_I18N.en[key] || key;
   }
 
   generateFragmentTexture(g) {
@@ -236,7 +294,7 @@ class StageScene extends Phaser.Scene {
       (value) => this.handleChant(value),
       (active) => {
         if (active) {
-          this.hud.setMessage("Voice mode active. Speak clearly.");
+          this.hud.setMessage(this.t("voiceActive"));
         }
       },
       (typing) => {
@@ -251,11 +309,16 @@ class StageScene extends Phaser.Scene {
           }
         }
       },
-      (value) => this.bhaktiInput.evaluate(value).success
+      (value) => this.bhaktiInput.evaluateForLanguage(value, this.uiLanguage, { strict: true }).success,
+      this.uiLanguage
     );
 
     this._bindTouchControls();
     this.updateHud();
+    
+    // Hide chant panel UI completely - we auto-offer recognized chants near beacon
+    this.hud?.hideChantPanelCompletely();
+    
     this.showTouchTutorialIfNeeded();
     // Show gyro toggle button whenever DeviceOrientationEvent is available.
     if (this.gyroInput.isSupported) {
@@ -373,6 +436,56 @@ class StageScene extends Phaser.Scene {
     this.handleGoalTouch();
   }
 
+  updateBeaconPrompt() {
+    if (!this.beaconPromptText || !this.beaconListeningIndicator || !this.goal || !this.player || this.goalResolved) {
+      return;
+    }
+
+    if (this.state.beaconChantOffered) {
+      this.beaconPromptText.setVisible(false);
+      this.beaconListeningIndicator.setVisible(false);
+      return;
+    }
+
+    const distance = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.goal.x, this.goal.y);
+    const isNearBeacon = distance <= BEACON_LISTEN_RADIUS;
+    const hasAllFragments = this.state.fragments >= this.targetFragments;
+    const micCooldownDone = (this.time.now - this.lastFragmentCollectedAt) >= MIC_AFTER_FRAGMENT_COOLDOWN_MS;
+    this.beaconPromptText.setVisible(isNearBeacon);
+
+    // Auto-start listening and show listening indicator when approaching beacon
+    if (isNearBeacon && !this.state.beaconChantOffered) {
+      if (!this.autoListenTriggered) {
+        this.autoListenTriggered = true;
+        if (hasAllFragments && micCooldownDone && this.hud?.isMicListening === false && !this.hud?.isMicStarting) {
+          if (this.debugTransitionsEnabled) {
+            console.info("[StageScene] Auto-starting beacon chant listening");
+          }
+          // Use the same evaluator as manual chant submission so Hindi/English variants match consistently.
+          const canAutoOfferChant = (text) => this.bhaktiInput.evaluateForLanguage(text, this.uiLanguage, { strict: true }).success;
+          this.hud.toggleSpeech(this.handleChant.bind(this), () => {}, canAutoOfferChant).catch(() => {});
+        }
+      }
+      // Always show an indicator near beacon so player knows chant listening state.
+      if (this.hud?.isMicListening === true) {
+        this.beaconListeningIndicator.setText(`🎤 ${this.t("listening")}`);
+      } else if (this.hud?.isMicStarting === true) {
+        this.beaconListeningIndicator.setText(`🎤 ${this.t("listeningStarting")}`);
+      } else if (!hasAllFragments) {
+        this.beaconListeningIndicator.setText(`🎤 ${this.t("listeningCollectFirst")}`);
+      } else {
+        this.beaconListeningIndicator.setText(`🎤 ${this.t("listeningReady")}`);
+      }
+      this.beaconListeningIndicator.setVisible(true);
+    } else {
+      // Hide listening indicator when not near beacon
+      this.beaconListeningIndicator.setVisible(false);
+      if (!isNearBeacon && this.autoListenTriggered) {
+        this.autoListenTriggered = false;
+      }
+    }
+  }
+
   createWorld() {
     this.cameras.main.setBackgroundColor(this.stageData.backgroundColor);
     this.platforms = this.physics.add.staticGroup();
@@ -390,7 +503,7 @@ class StageScene extends Phaser.Scene {
       shadow: { offsetX: 0, offsetY: 0, color: "#ffaa00", blur: 12, stroke: true, fill: true }
     });
 
-    this.controlsText = this.add.text(20, 50, "Move: A/D/Arrows | Jump: W/Up | Attack: J (light) K (heavy) | Size: Q/E after chant | F: Bhakti Blast", {
+    this.controlsText = this.add.text(20, 50, "Move: A/D/Arrows | Jump: W/Up | Attack: J (light) K (heavy) | Size: Q/E | F: Bhakti Blast", {
       color: "#8894b8",
       fontSize: compactViewport ? "11px" : "12px",
       wordWrap: { width: compactViewport ? 520 : 900 }
@@ -475,6 +588,37 @@ class StageScene extends Phaser.Scene {
       alpha: { from: 0.55, to: 0.90 },
       scaleX: { from: 1, to: 1.2 },
       duration: 700,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.inOut'
+    });
+
+    this.beaconPromptText = this.add.text(goal.x, goal.y - goal.height / 2 - 34, this.t("chantPrompt"), {
+      color: "#fff3b0",
+      fontSize: "12px",
+      fontStyle: "bold",
+      stroke: "#372100",
+      strokeThickness: 3,
+      backgroundColor: "rgba(5, 10, 30, 0.4)",
+      padding: { left: 6, right: 6, top: 3, bottom: 3 }
+    }).setOrigin(0.5).setDepth(12).setVisible(false);
+
+    // Listening indicator — pulsing icon that appears when mic is active near beacon
+    this.beaconListeningIndicator = this.add.text(goal.x, goal.y - goal.height / 2 - 60, `🎤 ${this.t("listening")}`, {
+      color: "#ffff99",
+      fontSize: "11px",
+      fontStyle: "bold",
+      stroke: "#ff6600",
+      strokeThickness: 2,
+      backgroundColor: "rgba(255, 100, 0, 0.2)",
+      padding: { left: 5, right: 5, top: 2, bottom: 2 }
+    }).setOrigin(0.5).setDepth(12).setVisible(false);
+
+    // Pulsing animation for listening indicator
+    this.tweens.add({
+      targets: this.beaconListeningIndicator,
+      alpha: { from: 0.6, to: 1 },
+      duration: 600,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.inOut'
@@ -630,6 +774,7 @@ class StageScene extends Phaser.Scene {
 
     this.fragmentOverlap = this.physics.add.overlap(this.player, this.fragments, (_playerObj, fragmentObj) => {
       fragmentObj.destroy();
+      this.lastFragmentCollectedAt = this.time.now;
       this.state.fragments += 1;
       this.state.bhakti += 4;
       this.state.dharma += 2;
@@ -672,7 +817,7 @@ class StageScene extends Phaser.Scene {
       stageIndex: this.stageIndex,
       fragments: this.state.fragments,
       targetFragments: this.targetFragments,
-      sizeMode: this.state.sizeMode,
+      hasChantOffer: this.state.beaconChantOffered,
       hasNextStage: window.StageLoader.hasNextStage(this.stageIndex),
       dharma: this.state.dharma
     });
@@ -720,6 +865,7 @@ class StageScene extends Phaser.Scene {
     }
 
     window.audioManager?.playStageTransition();
+    this.hud?.forceStopListening();
     this.isStageTransitioning = true;
     this.debugLastGoalResult = "transitioning";
     this.physics.pause();
@@ -740,7 +886,7 @@ class StageScene extends Phaser.Scene {
       this.isStageTransitioning = false;
       this.goalResolved = false;
       this.physics.resume();
-      this.hud.setMessage("Unable to load next stage data.");
+      this.hud.setMessage(this.t("stageLoadError"));
       return;
     }
 
@@ -755,7 +901,13 @@ class StageScene extends Phaser.Scene {
     this.state.dharma = 50;
     this.state.fragments = 0;
     this.state.sizeMode = "normal";
-    this.sizeShiftUnlockUntil = 0;
+    this.state.beaconChantOffered = false;
+    this.autoListenTriggered = false;
+    this.lastFragmentCollectedAt = -100000;
+    this.hud?.forceStopListening();
+    if (this.debugTransitionsEnabled) {
+      console.info("[StageScene] Reset beaconChantOffered to false for stage", stageIndex);
+    }
     this.lastEnemyHitAt = -1000;
     this.pointerMoveActive = false;
     this.pointerTargetX = null;
@@ -823,6 +975,10 @@ class StageScene extends Phaser.Scene {
 
     this.goal?.destroy();
     this.goal = null;
+    this.beaconPromptText?.destroy();
+    this.beaconPromptText = null;
+    this.beaconListeningIndicator?.destroy();
+    this.beaconListeningIndicator = null;
 
     this.titleText?.destroy();
     this.titleText = null;
@@ -1188,6 +1344,8 @@ class StageScene extends Phaser.Scene {
       window.audioManager?.playJump();
       this.playerActor.jump(jump);
     }
+
+    this.updateBeaconPrompt();
   }
 
   applySizeMode(mode) {
@@ -1205,11 +1363,6 @@ class StageScene extends Phaser.Scene {
   }
 
   tryApplySizeMode(mode) {
-    if (this.time.now > this.sizeShiftUnlockUntil) {
-      this.hud.setMessage("Chant first to unlock size shift for 10 seconds.");
-      return;
-    }
-
     this.applySizeMode(mode);
   }
 
@@ -1221,8 +1374,11 @@ class StageScene extends Phaser.Scene {
 
     this.state.bhakti -= 20;
     this.state.dharma = Math.min(100, this.state.dharma + 1);
-    this.enemyManager.destroyWithinRadius(this.player.x, this.player.y, 180);
+    const defeatedCount = this.enemyManager.destroyWithinRadius(this.player.x, this.player.y, 180);
     window.audioManager?.playBlast();
+    if (defeatedCount > 0) {
+      window.audioManager?.playEnemyDefeat();
+    }
 
     this.cameras.main.flash(120, 255, 210, 80);
     this.hud.setMessage("Bhakti Blast released.");
@@ -1230,10 +1386,10 @@ class StageScene extends Phaser.Scene {
   }
 
   handleChant(value) {
-    const result = this.bhaktiInput.evaluate(value);
+    const result = this.bhaktiInput.evaluateForLanguage(value, this.uiLanguage, { strict: true });
     if (!result.success) {
       this.state.dharma = Math.max(0, this.state.dharma - 1);
-      this.hud.setMessage("Chant not recognized. Try 'Jai Shri Ram'.");
+      this.hud.setMessage(this.t("chantNotRecognized"));
       this.updateHud();
       return;
     }
@@ -1241,15 +1397,31 @@ class StageScene extends Phaser.Scene {
     this.state.bhakti = Math.min(100, this.state.bhakti + result.points);
     this.state.health = Math.min(100, this.state.health + 4);
     this.state.dharma = Math.min(100, this.state.dharma + 2);
-    this.sizeShiftUnlockUntil = this.time.now + SIZE_SHIFT_WINDOW_MS;
 
     if (this.state.bhakti >= 75) {
       this.applySizeMode("large");
-      this.hud.setMessage("Anjaneya surge active. Large form empowered. Size shift unlocked for 10 seconds.");
+      this.hud.setMessage(this.t("surge"));
     } else {
-      this.hud.setMessage(`Chant accepted: ${result.matched}. +${result.points} Bhakti. Size shift unlocked for 10 seconds.`);
+      this.hud.setMessage(
+        this.t("chantAccepted")
+          .replace("{match}", result.matched)
+          .replace("{points}", String(result.points))
+      );
     }
 
+    const distanceToBeacon = Boolean(this.goal && this.player)
+      ? Phaser.Math.Distance.Between(this.player.x, this.player.y, this.goal.x, this.goal.y)
+      : Number.POSITIVE_INFINITY;
+    const isNearBeacon = distanceToBeacon <= BEACON_OFFER_RADIUS;
+    const hasAllFragments = this.state.fragments >= this.targetFragments;
+    if (isNearBeacon && hasAllFragments) {
+      this.state.beaconChantOffered = true;
+      this.beaconPromptText?.setVisible(false);
+      this.beaconListeningIndicator?.setVisible(false);
+    } else {
+      // Chant can still grant Bhakti/health, but beacon unlock requires chanting near beacon.
+      this.hud.setMessage(this.t("chantNeedsBeacon"));
+    }
     this.updateHud();
   }
 
@@ -1267,6 +1439,7 @@ class StageScene extends Phaser.Scene {
       const dharmaGain = isHeavy ? 2 : 1;
       this.state.bhakti = Math.min(100, this.state.bhakti + bhaktiGain);
       this.state.dharma = Math.min(100, this.state.dharma + dharmaGain);
+      window.audioManager?.playEnemyDefeat();
       this.updateHud();
     });
 

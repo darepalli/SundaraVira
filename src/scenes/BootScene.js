@@ -11,6 +11,10 @@ class BootScene extends Phaser.Scene {
   create() {
     if (!window.audioManager) {
       window.audioManager = new window.AudioManager();
+      // Preload audio assets asynchronously; game starts immediately with synthesis fallback
+      window.audioManager.preloadAudioAssets().catch(err => {
+        console.warn("[BootScene] Audio preload error:", err);
+      });
     }
 
     this.scene.start("MenuScene");

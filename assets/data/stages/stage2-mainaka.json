@@ -1,7 +1,7 @@
 {
   "id": "stage2-mainaka",
   "title": "Stage 2: Mainaka Ascent",
-  "objectiveText": "Stage 2: Gather 3 sky fragments, shift to Large form, and reach Mainaka.",
+  "objectiveText": "Stage 2: Gather 3 sky fragments, offer a chant, and reach Mainaka.",
   "backgroundColor": "#10253f",
   "targetFragments": 3,
   "goal": {

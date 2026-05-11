@@ -37,3 +37,28 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Read Build Version
+        id: version
+        run: |
+          VERSION=$(grep -oP '(?<=major: )\d+' src/config/version.js)
+          MINOR=$(grep -oP '(?<=minor: )\d+' src/config/version.js)
+          BUILD=$(grep -oP '(?<=build: )\d+' src/config/version.js)
+          echo "version=${VERSION}.${MINOR}" >> $GITHUB_OUTPUT
+          echo "build=${BUILD}" >> $GITHUB_OUTPUT
+
+      - name: Post to Discord
+        if: success()
+        uses: tsickert/discord-webhook@v5.3.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          embed-title: "🎮 Sundara Vira - New Build Ready!"
+          embed-description: |
+            A new build of Sundara Vira has been deployed to GitHub Pages!
+            
+            **Version:** ${{ steps.version.outputs.version }} Build ${{ steps.version.outputs.build }}
+            **Live:** ${{ steps.deployment.outputs.page_url }}
+            **Commit:** ${{ github.sha }}
+            
+            Join our WhatsApp group for updates: https://chat.whatsapp.com/JNsjJMKmzNSI7gytj3wwau
+          embed-color: 16766720

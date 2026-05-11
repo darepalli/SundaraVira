@@ -1,48 +1,75 @@
 class BhaktiInput {
   constructor() {
-    this.validPhrases = [
-      // Full standard romanized forms
-      "jai shri ram", "jai sri ram", "jai shree ram", "jai shree raam",
-      "jay shri ram", "jay sri ram", "jai sriram", "jai shriram",
-      "jai shri ram ji",
-      // Run-together / merged (common browser mic output)
-      "jaisri ram", "jaisriram", "jaishriram", "jaisriraam", "jaishriraam",
-      // Browser mishears "jai" as "hi", "i", "j", "a"
-      "hi shri ram", "i shri ram", "j shri ram", "a shri ram",
-      "shri ram", "shree ram", "sri ram",
-      // Sita-Ram
-      "sita ram", "sitaram", "siya ram", "siyaram",
-      "jai siyaram", "jai sita ram", "jai siya ram",
-      // Hanuman / Bajrang
-      "jai hanuman", "jai bajrang", "bajrang bali", "jai bajrangbali",
-      // Longer devotional texts
-      "hanuman chalisa", "hanuman chalisha", "hanuman chalise",
-      "sunderkand", "sundarkand", "sundara kanda",
-      "sundar kand", "sundra kanda", "sunder kand",
-      // Devanagari
-      "जय श्री राम", "जय श्रीराम", "जय सियाराम", "जय सिया राम",
-      "हनुमान चालीसा", "सुन्दरकाण्ड", "सुंदरकांड",
-      "राम", "सिया राम", "जय हनुमान", "बजरंग बली",
-      "ram"
-    ];
+    this.phrasesByLanguage = {
+      en: [
+        "jai shri ram", "jai sri ram", "jai shree ram", "jai shree raam",
+        "jay shri ram", "jay sri ram", "jai sriram", "jai shriram",
+        "jai shri ram ji", "shri ram", "shree ram", "sri ram", "ram",
+        "sita ram", "sitaram", "siya ram", "siyaram", "jai siyaram", "jai sita ram", "jai siya ram",
+        "jai hanuman", "jai bajrang", "bajrang bali", "jai bajrangbali",
+        "hanuman chalisa", "hanuman chalisha", "hanuman chalise",
+        "sunderkand", "sundarkand", "sundara kanda", "sundar kand", "sundra kanda", "sunder kand"
+      ],
+      hi: [
+        "जय श्री राम", "जय श्रीराम", "जय सिया राम", "जय सियाराम", "सिया राम", "राम",
+        "जय हनुमान", "हनुमान चालीसा", "बजरंग बली", "सुन्दरकाण्ड", "सुंदरकांड"
+      ],
+      te: [
+        "జై శ్రీరామ్", "జై శ్రీ రామ్", "శ్రీరామ్", "రామ్", "జై సీతారామ్", "జై సియా రామ్",
+        "జై హనుమాన్", "హనుమాన్ చాలీసా", "బజరంగ్ బలి", "సుందరకాండ"
+      ]
+    };
+
+    this.normalizedPhraseSets = {
+      en: new Set(this.phrasesByLanguage.en.map((p) => this.normalizeInput(p))),
+      hi: new Set(this.phrasesByLanguage.hi.map((p) => this.normalizeInput(p))),
+      te: new Set(this.phrasesByLanguage.te.map((p) => this.normalizeInput(p)))
+    };
   }
 
   evaluate(input) {
+    return this.evaluateForLanguage(input, "en", { strict: false });
+  }
+
+  evaluateForLanguage(input, language = "en", options = {}) {
+    const strict = options.strict !== false;
+    const normalizedLanguage = ["en", "hi", "te"].includes(language) ? language : "en";
     const cleaned = this.normalizeInput(input);
     if (!cleaned) {
       return { success: false, points: 0, matched: null };
     }
 
-    // 1. Direct phrase inclusion check
-    const directMatch = this.validPhrases.find((p) => cleaned.includes(p));
+    const directMatch = this._directMatch(cleaned, normalizedLanguage);
     if (directMatch) {
-      return { success: true, points: this._phrasePoints(directMatch), matched: directMatch };
+      return directMatch;
     }
 
+    if (normalizedLanguage === "hi") {
+      return this._evaluateHindi(cleaned, strict);
+    }
+
+    if (normalizedLanguage === "te") {
+      return this._evaluateTelugu(cleaned, strict);
+    }
+
+    return this._evaluateEnglish(cleaned, strict);
+  }
+
+  _directMatch(cleaned, language) {
+    const phraseSet = this.normalizedPhraseSets[language] || this.normalizedPhraseSets.en;
+    for (const phrase of phraseSet) {
+      if (cleaned.includes(phrase)) {
+        return { success: true, points: this._phrasePoints(phrase), matched: phrase };
+      }
+    }
+    return null;
+  }
+
+  _evaluateEnglish(cleaned, strict) {
     const tokens = new Set(cleaned.split(" "));
     const tokenArr = [...tokens];
 
-    // 2. Shri Ram — no longer requires "jai" prefix (browser often drops the first word)
+    // Shri Ram family
     const hasShriFamily =
       tokens.has("shri") || tokens.has("sri") || tokens.has("shree") || tokens.has("sree") ||
       tokenArr.some((t) => t.startsWith("shri") || t.startsWith("sri") || t === "shriram" || t === "sriram");
@@ -58,7 +85,7 @@ class BhaktiInput {
       return { success: true, points, matched: "jai shri ram" };
     }
 
-    // 3. Hanuman Chalisa
+    // Hanuman family
     const hasHanuman =
       tokens.has("hanuman") ||
       tokenArr.some((t) => t.startsWith("hanam") || t.startsWith("hanm") || t.startsWith("hanum"));
@@ -72,7 +99,7 @@ class BhaktiInput {
       return { success: true, points: 14, matched: "jai hanuman" };
     }
 
-    // 4. Sundara Kanda
+    // Sundara Kanda family
     const hasSundar =
       tokenArr.some((t) => t.startsWith("sunder") || t.startsWith("sundar") || t.startsWith("sundra"));
     const hasKand =
@@ -82,52 +109,81 @@ class BhaktiInput {
       return { success: true, points: 18, matched: "sundarakanda" };
     }
 
-    // 5. Sita / Siya Ram
+    // Sita / Siya Ram family
     const hasSita =
       tokens.has("sita") || tokens.has("siya") || tokens.has("seeta") || tokens.has("seetha");
     if (hasSita && hasRamFamily) {
       return { success: true, points: 14, matched: "sita ram" };
     }
 
-    // 6. Bajrang Bali
+    // Bajrang Bali family
     if (tokens.has("bajrang") || tokenArr.some((t) => t.startsWith("bajr"))) {
       return { success: true, points: 16, matched: "bajrang bali" };
     }
 
-    // 7. Devanagari
-    const hasJaiD = tokens.has("जय");
-    const hasRamD = tokens.has("राम") || tokens.has("श्रीराम") || tokens.has("सियाराम");
-    const hasShriD = tokens.has("श्री") || tokens.has("श्रीराम");
+    if (!strict && this._phoneticFallback(cleaned)) {
+      return { success: true, points: 10, matched: "jai shri ram" };
+    }
 
-    if (hasJaiD && (hasShriD || hasRamD)) {
+    return { success: false, points: 0, matched: null };
+  }
+
+  _evaluateHindi(cleaned, strict) {
+    const hasDevanagari = /[\u0900-\u097F]/.test(cleaned);
+    if (strict && !hasDevanagari) {
+      return { success: false, points: 0, matched: null };
+    }
+
+    const hasJai = cleaned.includes("जय");
+    const hasRam = cleaned.includes("राम") || cleaned.includes("श्रीराम") || cleaned.includes("सियाराम");
+    const hasShri = cleaned.includes("श्री") || cleaned.includes("श्रीराम");
+    const hasSiya = cleaned.includes("सिया") || cleaned.includes("सीता") || cleaned.includes("सियाराम");
+
+    if (hasJai && (hasShri || hasRam)) {
       return { success: true, points: 18, matched: "जय श्री राम" };
     }
-    if (tokens.has("हनुमान") && (tokens.has("चालीसा") || tokens.has("चालिसा"))) {
-      return { success: true, points: 20, matched: "हनुमान चालीसा" };
-    }
-    const hasSundarD =
-      cleaned.includes("सुन्दरकाण्ड") || cleaned.includes("सुंदरकांड") ||
-      ((tokens.has("सुन्दर") || tokens.has("सुंदर")) &&
-       (tokens.has("काण्ड") || tokens.has("कांड")));
-    if (hasSundarD) {
-      return { success: true, points: 18, matched: "सुन्दरकाण्ड" };
-    }
-    if (tokens.has("राम")) {
-      return { success: true, points: 8, matched: "राम" };
-    }
-    if ((tokens.has("सिया") || tokens.has("सीता")) && hasRamD) {
+    if (hasSiya && hasRam) {
       return { success: true, points: 14, matched: "सिया राम" };
     }
-    if (tokens.has("बजरंग")) {
+    if (cleaned.includes("हनुमान") && (cleaned.includes("चालीसा") || cleaned.includes("चालिसा"))) {
+      return { success: true, points: 20, matched: "हनुमान चालीसा" };
+    }
+    if (cleaned.includes("सुन्दरकाण्ड") || cleaned.includes("सुंदरकांड")) {
+      return { success: true, points: 18, matched: "सुन्दरकाण्ड" };
+    }
+    if (cleaned.includes("बजरंग")) {
       return { success: true, points: 16, matched: "बजरंग बली" };
     }
-    if (tokens.has("हनुमान") && hasJaiD) {
-      return { success: true, points: 14, matched: "जय हनुमान" };
+    if (cleaned.includes("राम")) {
+      return { success: true, points: 8, matched: "राम" };
     }
 
-    // 8. Phonetic fallback — catches heavily distorted recognition output
-    if (this._phoneticFallback(cleaned)) {
-      return { success: true, points: 10, matched: "jai shri ram" };
+    return { success: false, points: 0, matched: null };
+  }
+
+  _evaluateTelugu(cleaned, strict) {
+    const hasTelugu = /[\u0C00-\u0C7F]/.test(cleaned);
+    if (strict && !hasTelugu) {
+      return { success: false, points: 0, matched: null };
+    }
+
+    const hasJai = cleaned.includes("జై");
+    const hasRam = cleaned.includes("రామ్") || cleaned.includes("శ్రీరామ్") || cleaned.includes("సీతారామ్");
+
+    if (hasJai && hasRam) {
+      return { success: true, points: 18, matched: "జై శ్రీరామ్" };
+    }
+    if (cleaned.includes("హనుమాన్") && (cleaned.includes("చాలీసా") || cleaned.includes("చలీసా"))) {
+      return { success: true, points: 20, matched: "హనుమాన్ చాలీసా" };
+    }
+    if (cleaned.includes("సుందరకాండ")) {
+      return { success: true, points: 18, matched: "సుందరకాండ" };
+    }
+    if (cleaned.includes("బజరంగ్")) {
+      return { success: true, points: 16, matched: "బజరంగ్ బలి" };
+    }
+    if (cleaned.includes("రామ్")) {
+      return { success: true, points: 8, matched: "రామ్" };
     }
 
     return { success: false, points: 0, matched: null };
@@ -137,16 +193,19 @@ class BhaktiInput {
     const map = {
       "hanuman chalisa": 20, "hanuman chalisha": 20, "hanuman chalise": 20,
       "हनुमान चालीसा": 20,
+      "హనుమాన్ చాలీసా": 20,
       "sunderkand": 18, "sundarkand": 18, "sundara kanda": 18,
-      "sundar kand": 18, "सुन्दरकाण्ड": 18, "सुंदरकांड": 18,
+      "sundar kand": 18, "सुन्दरकाण्ड": 18, "सुंदरकांड": 18, "సుందరకాండ": 18,
       "jai shri ram": 18, "jai sri ram": 18, "jai shree ram": 18,
       "जय श्री राम": 18, "जय श्रीराम": 18, "जय सियाराम": 18,
+      "జై శ్రీరామ్": 18, "జై శ్రీ రామ్": 18,
       "jaisriram": 16, "jaishriram": 16, "jai siyaram": 16, "bajrang bali": 16,
-      "बजरंग बली": 16, "shri ram": 14, "shree ram": 14, "sri ram": 14,
+      "बजरंग बली": 16, "బజరంగ్ బలి": 16, "shri ram": 14, "shree ram": 14, "sri ram": 14,
       "sita ram": 14, "sitaram": 14, "siya ram": 14, "jai hanuman": 14,
       "जय हनुमान": 14, "सिया राम": 14,
+      "జై హనుమాన్": 14,
       "hi shri ram": 12, "i shri ram": 12, "j shri ram": 12,
-      "ram": 8, "राम": 8
+      "ram": 8, "राम": 8, "రామ్": 8
     };
     return map[phrase] ?? Math.min(20, Math.max(8, phrase.length));
   }

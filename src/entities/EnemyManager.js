@@ -43,13 +43,16 @@ class EnemyManager {
   }
 
   destroyWithinRadius(x, y, radius) {
+    let destroyed = 0;
     this.group.children.each((enemyObj) => {
       const enemy = enemyObj;
       const distance = Phaser.Math.Distance.Between(x, y, enemy.x, enemy.y);
       if (distance < radius) {
         enemy.destroy();
+        destroyed += 1;
       }
     });
+    return destroyed;
   }
 }
 

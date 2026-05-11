@@ -3,9 +3,55 @@ class MenuScene extends Phaser.Scene {
     super("MenuScene");
   }
 
+  _getUiLanguage() {
+    const saved = window.localStorage.getItem("sv.uiLanguage") || "en";
+    return ["en", "hi", "te"].includes(saved) ? saved : "en";
+  }
+
+  _setUiLanguage(language) {
+    const safeLanguage = ["en", "hi", "te"].includes(language) ? language : "en";
+    window.localStorage.setItem("sv.uiLanguage", safeLanguage);
+    return safeLanguage;
+  }
+
+  _getVersionLabel() {
+    const version = window.SV_VERSION || { major: 1, minor: 0, build: 1 };
+    return `Version ${version.major}.${version.minor}  Build ${version.build}`;
+  }
+
   create() {
     const W = 960, H = 540;
     const cx = W / 2;
+    const copy = {
+      en: {
+        languageLabel: "Language",
+        titleSubline: "— सुन्दरवीर —",
+        tagline: "Devotion powers the leap. Chant to ascend Lanka.",
+        start: "  Begin the Journey  ",
+        hint: "Offer a chant to open the beacon path.\nCollect fragments, reach the beacon, and ascend Mainaka.",
+        controls: "WASD/Arrows — Move  |  Space/W — Jump  |  J/K — Attack  |  Q/E — Size Shift  |  F — Bhakti Blast",
+        community: "🌐 Join Our Community"
+      },
+      hi: {
+        languageLabel: "भाषा",
+        titleSubline: "— सुन्दरवीर —",
+        tagline: "भक्ति से शक्ति मिलती है। जप करके लंका की ओर बढ़ें।",
+        start: "  यात्रा आरंभ करें  ",
+        hint: "बीकन मार्ग खोलने के लिए मंत्र अर्पित करें।\nफ्रैगमेंट्स एकत्र करें, बीकन तक पहुंचें, और मैनाक पर चढ़ें।",
+        controls: "WASD/Arrows — चलें  |  Space/W — कूदें  |  J/K — हमला  |  Q/E — आकार बदलें  |  F — भक्ति ब्लास्ट",
+        community: "🌐 समुदाय से जुड़ें"
+      },
+      te: {
+        languageLabel: "భాష",
+        titleSubline: "— సుందరవీర —",
+        tagline: "భక్తే శక్తి. జపంతో లంక యాత్రను కొనసాగించండి.",
+        start: "  యాత్ర ప్రారంభం  ",
+        hint: "బీకన్ మార్గం తెరవడానికి జపం సమర్పించండి.\nఫ్రాగ్మెంట్లు సేకరించి, బీకన్ చేరి, మైనాకం అధిరోహించండి.",
+        controls: "WASD/Arrows — కదలిక  |  Space/W — జంప్  |  J/K — దాడి  |  Q/E — పరిమాణ మార్పు  |  F — భక్తి బ్లాస్ట్",
+        community: "🌐 సమాజానికి చేరండి"
+      }
+    };
+    let currentLanguage = this._getUiLanguage();
 
     // ── Deep night sky gradient (layered rects) ───────────────────────
     this.add.rectangle(cx, 135, W, 270, 0x03071a, 1).setDepth(-10);
@@ -83,15 +129,74 @@ class MenuScene extends Phaser.Scene {
       duration: 1800, yoyo: true, repeat: -1, ease: "Sine.inOut"
     });
 
+    // Keep version next to title so it is immediately visible on launch.
+    const versionTag = this.add.text(0, 0, this._getVersionLabel(), {
+      color: "#f0d8a0",
+      fontSize: "14px",
+      fontStyle: "bold",
+      fontFamily: "'Trebuchet MS','Segoe UI',sans-serif",
+      stroke: "#3a1a00",
+      strokeThickness: 2
+    }).setDepth(10).setAlpha(0.9);
+    versionTag.setPosition(
+      title.x + (title.width * 0.5) + 14,
+      title.y - 6
+    );
+
+    // Language selector (interface + chant recognition mode)
+    const languageLabel = this.add.text(cx - 130, 222, `${copy[currentLanguage].languageLabel}:`, {
+      color: "#f0d8a0",
+      fontSize: "16px",
+      fontStyle: "bold",
+      fontFamily: "'Trebuchet MS','Segoe UI',sans-serif"
+    }).setOrigin(0.5).setDepth(10);
+
+    const languageButtons = [
+      { code: "en", label: "English" },
+      { code: "te", label: "తెలుగు" },
+      { code: "hi", label: "हिंदी" }
+    ];
+
+    const languageButtonNodes = languageButtons.map((item, index) => {
+      const node = this.add.text(cx - 20 + (index * 90), 222, item.label, {
+        color: item.code === currentLanguage ? "#0f172a" : "#f3d9a0",
+        backgroundColor: item.code === currentLanguage ? "#f5a030" : "#4a2a10",
+        fontSize: "14px",
+        fontStyle: "bold",
+        fontFamily: "'Trebuchet MS','Segoe UI',sans-serif",
+        padding: { left: 8, right: 8, top: 4, bottom: 4 }
+      }).setOrigin(0.5).setDepth(10).setInteractive({ useHandCursor: true });
+
+      node.on("pointerdown", () => {
+        currentLanguage = this._setUiLanguage(item.code);
+        languageLabel.setText(`${copy[currentLanguage].languageLabel}:`);
+        titleSubline.setText(copy[currentLanguage].titleSubline);
+        taglineText.setText(copy[currentLanguage].tagline);
+        startButton.setText(copy[currentLanguage].start);
+        hintText.setText(copy[currentLanguage].hint);
+        controlsText.setText(copy[currentLanguage].controls);
+        communityButton.setText(copy[currentLanguage].community);
+        languageButtonNodes.forEach((btn, btnIndex) => {
+          const code = languageButtons[btnIndex].code;
+          btn.setStyle({
+            color: code === currentLanguage ? "#0f172a" : "#f3d9a0",
+            backgroundColor: code === currentLanguage ? "#f5a030" : "#4a2a10"
+          });
+        });
+      });
+
+      return node;
+    });
+
     // Sanskrit sub-line
-    this.add.text(cx, 192, "— सुन्दरवीर —", {
+    const titleSubline = this.add.text(cx, 192, copy[currentLanguage].titleSubline, {
       color: "#e8b060", fontSize: "22px",
       fontFamily: "'Georgia','Times New Roman',serif",
       alpha: 0.85
     }).setOrigin(0.5).setDepth(10);
 
     // Lore tagline
-    this.add.text(cx, 232, "Devotion powers the leap. Chant to ascend Lanka.", {
+    const taglineText = this.add.text(cx, 250, copy[currentLanguage].tagline, {
       color: "#b8c8ff", fontSize: "17px",
       fontFamily: "'Trebuchet MS','Segoe UI',sans-serif"
     }).setOrigin(0.5).setDepth(10);
@@ -106,7 +211,7 @@ class MenuScene extends Phaser.Scene {
       duration: 1000, yoyo: true, repeat: -1, ease: "Sine.inOut"
     });
 
-    const startButton = this.add.text(cx, 314, "  Begin the Journey  ", {
+    const startButton = this.add.text(cx, 324, copy[currentLanguage].start, {
       color: "#0f172a",
       backgroundColor: "#f5a030",
       fontSize: "24px",
@@ -120,18 +225,18 @@ class MenuScene extends Phaser.Scene {
     startButton.on("pointerover", () => startButton.setScale(1.04).setColor("#100820"));
     startButton.on("pointerout", () => startButton.setScale(1).setColor("#0f172a"));
     startButton.on("pointerdown", () => {
-      this.scene.start("StageScene", { stageIndex: 0 });
+      this.scene.start("StageScene", { stageIndex: 0, uiLanguage: currentLanguage });
     });
 
     // ── Hint text ────────────────────────────────────────────────────
-    this.add.text(cx, 390, "Chant or type to unlock size-shift.\nCollect fragments, reach the beacon, and ascend Mainaka.", {
+    const hintText = this.add.text(cx, 395, copy[currentLanguage].hint, {
       color: "#8896cc", fontSize: "15px",
       fontFamily: "'Trebuchet MS','Segoe UI',sans-serif",
       wordWrap: { width: 680 }, align: "center"
     }).setOrigin(0.5).setDepth(10);
 
     // Controls reminder
-    this.add.text(cx, 454, "WASD/Arrows — Move  |  Space/W — Jump  |  J/K — Attack  |  Q/E — Size Shift  |  F — Bhakti Blast", {
+    const controlsText = this.add.text(cx, 454, copy[currentLanguage].controls, {
       color: "#525c88", fontSize: "12px",
       fontFamily: "'Trebuchet MS','Segoe UI',sans-serif"
     }).setOrigin(0.5).setDepth(10);
@@ -139,6 +244,31 @@ class MenuScene extends Phaser.Scene {
     // ── Decorative divider line ───────────────────────────────────────
     this.add.rectangle(cx, 268, 500, 1, 0xf5c030, 0.30).setDepth(10);
     this.add.rectangle(cx, 360, 500, 1, 0xf5c030, 0.20).setDepth(10);
+
+    // ── Community/WhatsApp link button ────────────────────────────────
+    const communityButton = this.add.text(cx, 485, copy[currentLanguage].community, {
+      color: "#0f172a",
+      backgroundColor: "#25d366",
+      fontSize: "14px",
+      fontStyle: "bold",
+      fontFamily: "'Trebuchet MS','Segoe UI',sans-serif",
+      padding: { left: 12, right: 12, top: 6, bottom: 6 },
+      stroke: "#0b8a3a", strokeThickness: 1,
+      shadow: { offsetX: 0, offsetY: 1, color: "#000", blur: 3, fill: true }
+    }).setOrigin(0.5).setDepth(10).setInteractive({ useHandCursor: true });
+
+    communityButton.on("pointerover", () => {
+      communityButton.setScale(1.08).setColor("#000814");
+      communityButton.setStyle({ backgroundColor: "#20c657" });
+    });
+    communityButton.on("pointerout", () => {
+      communityButton.setScale(1).setColor("#0f172a");
+      communityButton.setStyle({ backgroundColor: "#25d366" });
+    });
+    communityButton.on("pointerdown", () => {
+      window.open("https://chat.whatsapp.com/JNsjJMKmzNSI7gytj3wwau", "_blank");
+    });
+
   }
 }
 
