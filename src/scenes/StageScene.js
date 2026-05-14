@@ -134,6 +134,9 @@ class StageScene extends Phaser.Scene {
     this.autoListenTriggered = false;
     this.beaconListeningIndicator = null;
     this.uiLanguage = "en";
+    this.isTutorialMode = false;
+    this.tutorialTimers = [];
+    this.tutorialSequenceActive = false;
     this.lastFragmentCollectedAt = -100000;
     this.state = {
       health: 100,
@@ -149,6 +152,9 @@ class StageScene extends Phaser.Scene {
     this.debugTransitionsEnabled = isTransitionDebugEnabled();
     const savedLanguage = window.localStorage.getItem("sv.uiLanguage") || "en";
     this.uiLanguage = ["en", "hi", "te"].includes(data?.uiLanguage) ? data.uiLanguage : savedLanguage;
+    this.isTutorialMode = Boolean(data?.tutorial);
+    this.tutorialTimers = [];
+    this.tutorialSequenceActive = false;
     this.stageIndex = Number(data?.stageIndex ?? 0);
     this.stageData = window.StageLoader.getStageData(this.game, this.stageIndex);
     if (!this.stageData) {
@@ -312,8 +318,12 @@ class StageScene extends Phaser.Scene {
     
     // Hide chant panel UI completely - we auto-offer recognized chants near beacon
     this.hud?.hideChantPanelCompletely();
-    
-    this.showTouchTutorialIfNeeded();
+
+    if (this.isTutorialMode) {
+      this.startTutorialDemo();
+    } else {
+      this.showTouchTutorialIfNeeded();
+    }
     document.body.classList.remove("touch-active");
     if (this.debugTransitionsEnabled) {
       this.createDebugOverlay();
@@ -327,6 +337,7 @@ class StageScene extends Phaser.Scene {
         window.clearTimeout(this.transitionFallbackTimeoutId);
         this.transitionFallbackTimeoutId = null;
       }
+      this.clearTutorialTimers();
       this.hud?.destroy();
       this.gyroInput?.destroy();
       this.gyroInput = null;
@@ -353,6 +364,10 @@ class StageScene extends Phaser.Scene {
   update() {
     if (this.debugTransitionsEnabled) {
       this.updateDebugOverlay();
+    }
+
+    if (this.isTutorialMode) {
+      return;
     }
 
     if (this.isGameOver) {
@@ -631,7 +646,6 @@ class StageScene extends Phaser.Scene {
       if (ok && this.gyroInput) {
         this.gyroInput.disableSwipeNav();
         this.gyroInput.start();
-        this.hud.setGyroActive(true);
         return;
       }
     }
@@ -653,7 +667,6 @@ class StageScene extends Phaser.Scene {
         if (granted && this.gyroInput) {
           this.gyroInput.disableSwipeNav();
           this.gyroInput.start();
-          this.hud.setGyroActive(true);
         } else {
           this.hud.setMessage("Motion access denied. Swipe left/right to move, tap to stop.");
         }
@@ -664,23 +677,6 @@ class StageScene extends Phaser.Scene {
         // swipe-nav is already active — nothing more to do
       }
     );
-  }
-
-  async _onGyroToggle() {
-    if (!this.gyroInput) return;
-    if (this.gyroInput.active) {
-      this.gyroInput.stop();
-      this.hud.setMessage("Gyro off — keyboard/mouse/touch movement remains available.");
-    } else {
-      const granted = await this.gyroInput.requestPermission();
-      if (!granted) {
-        this.hud.setMessage("Gyro permission denied. Allow motion sensors in browser settings.");
-        return;
-      }
-      this.gyroInput.disableSwipeNav(); // gyro takes over movement
-      this.gyroInput.start();
-      this.hud.setMessage("Gyro on — tilt to move, shake up to jump, swipe up/down to resize.");
-    }
   }
 
   showTouchTutorialIfNeeded() {
@@ -699,7 +695,7 @@ class StageScene extends Phaser.Scene {
     }
 
     this._touchTutorialShown = true;
-    this.hud.setMessage("Mobile controls: tilt to move, shake to jump, swipe up/down to resize, tap to attack, double-tap for heavy.");
+    this.hud.setMessage("Mobile controls: tilt or touch-drag to move, shake to jump, swipe up/down to resize, tap to attack, double-tap for heavy.");
 
     this.time.delayedCall(5200, () => {
       if (!this.scene.isActive("StageScene") || this.isGameOver || this.isStageTransitioning) {
@@ -730,14 +726,7 @@ class StageScene extends Phaser.Scene {
 
       if (isTouchPointer && this.gyroInput?.isSupported && !this.gyroInput.active && !this._gyroPermissionAttempted) {
         this._gyroPermissionAttempted = true;
-        this.gyroInput.requestPermission().then((granted) => {
-          if (granted) {
-            this.gyroInput.start();
-            this.hud.setMessage("Gyro active. Tilt to move, shake to jump, swipe up/down to resize.");
-          }
-        }).catch(() => {
-          // Keep touch movement available if permission flow errors.
-        });
+        this._promptIosGyroPermission();
       }
 
       if (pointer.middleButtonDown()) {
@@ -852,14 +841,7 @@ class StageScene extends Phaser.Scene {
     this.enemyPlatformCollider = this.physics.add.collider(this.enemies, this.platforms);
 
     this.fragmentOverlap = this.physics.add.overlap(this.player, this.fragments, (_playerObj, fragmentObj) => {
-      fragmentObj.destroy();
-      this.lastFragmentCollectedAt = this.time.now;
-      this.state.fragments += 1;
-      this.state.bhakti += 4;
-      this.state.dharma += 2;
-      window.audioManager?.playCollect();
-      this.hud.setMessage(this.objectiveSystem.getFragmentMessage(this.stageIndex));
-      this.updateHud();
+      this.collectFragment(fragmentObj);
     });
 
     this.enemyOverlap = this.physics.add.overlap(this.player, this.enemies, () => {
@@ -904,6 +886,10 @@ class StageScene extends Phaser.Scene {
     if (result.type === "next-stage") {
       this.debugLastGoalResult = "next-stage";
       this.goalResolved = true;
+      if (this.isTutorialMode) {
+        this.finishTutorialDemo();
+        return;
+      }
       this.startNextStage();
       return;
     }
@@ -1495,6 +1481,214 @@ class StageScene extends Phaser.Scene {
       this.hud.setMessage(this.t("chantNeedsBeacon"));
     }
     this.updateHud();
+  }
+
+  collectFragment(fragmentObj) {
+    if (!fragmentObj || !fragmentObj.active) {
+      return false;
+    }
+
+    fragmentObj.destroy();
+    this.lastFragmentCollectedAt = this.time.now;
+    this.state.fragments += 1;
+    this.state.bhakti += 4;
+    this.state.dharma += 2;
+    window.audioManager?.playCollect();
+    this.hud.setMessage(this.objectiveSystem.getFragmentMessage(this.stageIndex));
+    this.updateHud();
+    return true;
+  }
+
+  clearTutorialTimers() {
+    this.tutorialTimers.forEach((timer) => {
+      timer?.remove?.(false);
+    });
+    this.tutorialTimers = [];
+  }
+
+  movePlayerToTutorialTarget(x, y, duration, onComplete) {
+    if (!this.playerActor?.sprite) {
+      if (typeof onComplete === "function") {
+        onComplete();
+      }
+      return;
+    }
+
+    this.tweens.add({
+      targets: this.playerActor.sprite,
+      x,
+      y,
+      duration,
+      ease: "Sine.inOut",
+      onUpdate: () => {
+        this.playerActor?.syncLabel();
+      },
+      onComplete: () => {
+        this.playerActor?.syncLabel();
+        if (typeof onComplete === "function") {
+          onComplete();
+        }
+      }
+    });
+  }
+
+  abortTutorialDemo() {
+    if (!this.isTutorialMode) {
+      return;
+    }
+
+    this.isTutorialMode = false;
+    this.tutorialSequenceActive = false;
+    this.clearTutorialTimers();
+    this.hud?.hideTutorialOverlay();
+    this.scene.start("MenuScene");
+  }
+
+  finishTutorialDemo() {
+    if (!this.isTutorialMode) {
+      return;
+    }
+
+    this.tutorialSequenceActive = false;
+    this.clearTutorialTimers();
+    this.hud?.showTutorialOverlay({
+      title: "Tutorial complete",
+      body: "Stage 1 has been autoplayed. Use the menu button to replay the guided demo or begin normally.",
+      progress: "Tutorial finished",
+      activeControls: ["move", "jump", "size", "chant", "attack", "blast"],
+      actionText: "Back to menu",
+      onAction: () => this.abortTutorialDemo()
+    });
+
+    this.tutorialTimers.push(this.time.delayedCall(2400, () => {
+      if (this.isTutorialMode) {
+        this.abortTutorialDemo();
+      }
+    }));
+  }
+
+  startTutorialDemo() {
+    if (!this.hud || !this.playerActor?.sprite || !this.stageData) {
+      return;
+    }
+
+    this.tutorialSequenceActive = true;
+    this.clearTutorialTimers();
+    this.physics.pause();
+    if (this.input?.keyboard) {
+      this.input.keyboard.enabled = false;
+    }
+
+    const fragmentTargets = Array.isArray(this.stageData.fragments) ? this.stageData.fragments.slice() : [];
+    const fragmentSprites = this.fragments?.getChildren?.().slice() || [];
+    const stepDefinitions = [
+      {
+        body: "Watch Hanuman move on his own while the arrow controls pulse.",
+        progress: "Step 1 / 6",
+        activeControls: ["move"],
+        moveTo: fragmentTargets[0],
+        collectIndex: 0,
+        duration: 900
+      },
+      {
+        body: "Jumping over ledges uses Up or Space. The demo now climbs to the next platform.",
+        progress: "Step 2 / 6",
+        activeControls: ["jump"],
+        moveTo: fragmentTargets[1],
+        collectIndex: 1,
+        duration: 1000
+      },
+      {
+        body: "Size changes are on Page Up, Page Down, or the mouse wheel.",
+        progress: "Step 3 / 6",
+        activeControls: ["size"],
+        moveTo: fragmentTargets[2],
+        collectIndex: 2,
+        duration: 1000
+      },
+      {
+        body: "Attack and Bhakti Blast are shown here so you can see the full control set.",
+        progress: "Step 4 / 6",
+        activeControls: ["attack", "blast"],
+        moveTo: fragmentTargets[3],
+        collectIndex: 3,
+        duration: 1000
+      },
+      {
+        body: "The last fragment is near the beacon. Chanting unlocks the goal.",
+        progress: "Step 5 / 6",
+        activeControls: ["chant"],
+        moveTo: fragmentTargets[4],
+        collectIndex: 4,
+        duration: 1100,
+        afterMove: () => {
+          this.handleChant("jai shri ram");
+          this.handleGoalTouch();
+        }
+      },
+      {
+        body: "Stage 1 is complete. Return to the menu to start a normal run.",
+        progress: "Step 6 / 6",
+        activeControls: ["move", "jump", "size", "chant", "attack", "blast"],
+        finish: true,
+        duration: 800
+      }
+    ];
+
+    const runStep = (stepIndex) => {
+      if (!this.isTutorialMode) {
+        return;
+      }
+
+      const step = stepDefinitions[stepIndex];
+      if (!step) {
+        this.finishTutorialDemo();
+        return;
+      }
+
+      this.hud.updateTutorialOverlay({
+        title: "Tutorial Demo",
+        body: step.body,
+        progress: step.progress,
+        activeControls: step.activeControls,
+        actionText: stepIndex >= stepDefinitions.length - 1 ? "Back to menu" : "Skip demo",
+        onAction: () => this.abortTutorialDemo()
+      });
+
+      if (step.finish) {
+        this.finishTutorialDemo();
+        return;
+      }
+
+      const target = step.moveTo;
+      if (Array.isArray(target) && target.length >= 2) {
+        this.movePlayerToTutorialTarget(target[0], target[1], step.duration, () => {
+          if (typeof step.collectIndex === "number") {
+            this.collectFragment(fragmentSprites[step.collectIndex]);
+          }
+
+          if (typeof step.afterMove === "function") {
+            step.afterMove();
+          }
+
+          this.tutorialTimers.push(this.time.delayedCall(550, () => runStep(stepIndex + 1)));
+        });
+        return;
+      }
+
+      this.tutorialTimers.push(this.time.delayedCall(step.duration || 800, () => runStep(stepIndex + 1)));
+    };
+
+    this.hud.showTutorialOverlay({
+      title: "Tutorial Demo",
+      body: "Stage 1 will autoplay while the controls animate below.",
+      progress: "Stage 1 / Guided demo",
+      activeControls: ["move"],
+      actionText: "Skip demo",
+      onAction: () => this.abortTutorialDemo()
+    });
+
+    this.tutorialTimers.push(this.time.delayedCall(900, () => runStep(0)));
   }
 
   triggerMeleeAttack(heavy) {

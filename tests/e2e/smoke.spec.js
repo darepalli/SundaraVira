@@ -39,6 +39,7 @@ test("transitions from stage 1 to stage 2 when objectives are met", async ({ pag
     const stage = window.game.scene.getScene("StageScene");
     stage.__e2eMarker = markerValue;
     stage.state.fragments = stage.targetFragments;
+    stage.state.beaconChantOffered = true;
     stage.applySizeMode("large");
     stage.handleGoalTouch();
   }, marker);
@@ -68,10 +69,7 @@ test("transitions from stage 1 to stage 2 when objectives are met", async ({ pag
   await expect(page.locator(".message")).toContainText(/Mainaka|Sky|fragment/i);
 });
 
-test("shows on-screen touch controls in gameplay", async ({ page }) => {
-  // Use ?buttons=1 so the controls are visible on the desktop Playwright browser.
-  // On real mobile devices the controls show automatically; on PC they are hidden
-  // by default (keyboard is used instead) unless this flag is set.
+test("does not render legacy on-screen touch controls", async ({ page }) => {
   await page.goto("/?buttons=1");
 
   await page.waitForFunction(() => {
@@ -86,7 +84,7 @@ test("shows on-screen touch controls in gameplay", async ({ page }) => {
     return Boolean(window.game && window.game.scene && window.game.scene.isActive("StageScene"));
   });
 
-  await expect(page.locator(".touch-controls")).toBeVisible();
-  // 9 original buttons + gyro-toggle + calibrate = 11
-  await expect(page.locator(".touch-btn")).toHaveCount(11);
+  await expect(page.locator(".hud")).toBeVisible();
+  await expect(page.locator(".touch-controls")).toHaveCount(0);
+  await expect(page.locator(".touch-btn")).toHaveCount(0);
 });

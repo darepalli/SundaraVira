@@ -2,10 +2,11 @@
 
 ## 1. Test scope
 - Menu to gameplay launch
+- Tutorial demo launch and completion
 - Core movement and combat
 - Bhakti/chant mechanics
 - Stage progression and game-over flow
-- Touch controls and responsive behavior
+- Responsive behavior and non-blocking HUD
 
 ## 2. Test environments
 
@@ -40,25 +41,35 @@ Mobile (same Wi-Fi):
 ### TC-D1: Launch and menu
 Steps:
 1. Open app URL
-2. Verify menu loads with title and Begin button
+2. Verify menu loads with title, Begin button, and Tutorial Demo button
 3. Click Begin
 Expected:
 - Stage scene loads (no blank screen)
 - HUD is visible
 
+### TC-D1b: Tutorial demo autoplay
+Steps:
+1. From menu, click Tutorial Demo
+2. Observe overlay step cards and animated control chips
+3. Let autoplay finish or click Skip demo
+Expected:
+- Tutorial overlay appears with progress steps
+- Hanuman autoplays Stage 1 sequence and demonstrates controls
+- Demo exits back to menu after completion or skip
+
 ### TC-D2: Movement and jump
 Steps:
-1. Use A/D or arrow keys
-2. Use W or Up to jump
+1. Use left/right arrows or click-drag movement
+2. Use Space or Up to jump
 Expected:
 - Character moves and jumps correctly
 - No freeze/stutter
 
 ### TC-D3: Combat actions
 Steps:
-1. Press J for light attack
-2. Press K for heavy attack
-3. Press F with enough Bhakti
+1. Press Ctrl for light attack
+2. Press Shift for heavy attack
+3. Press Alt with enough Bhakti
 Expected:
 - Attack effects appear
 - Enemies can be defeated
@@ -75,7 +86,8 @@ Expected:
 
 ### TC-D5: Size shift
 Steps:
-1. Use Q and E after unlock
+1. Use Page Down and Page Up
+2. Use mouse wheel as alternate input
 Expected:
 - Size mode changes correctly
 - HUD message updates
@@ -98,21 +110,19 @@ Expected:
 
 ## 5. Mobile test cases
 
-### TC-M1: Touch controls visibility
+### TC-M1: No legacy on-screen controls
 Steps:
 1. Start Stage scene on phone
 Expected:
-- Left cluster visible (move/jump)
-- Right cluster visible (size/attack/blast)
-- Buttons are easy to tap
+- Legacy touch button clusters are not shown
+- Gameplay remains controllable via available mobile input path
 
-### TC-M2: Touch controls behavior
+### TC-M2: Core mobile interaction
 Steps:
-1. Hold left/right buttons for movement
-2. Tap jump, attack, heavy, blast, and size buttons
+1. Test movement, jump, attack, blast, and size-change inputs on device
+2. Verify no accidental page scrolling during gameplay interactions
 Expected:
-- Held movement is continuous
-- Action buttons trigger reliably
+- Inputs respond reliably on the supported control path
 - No accidental page scrolling
 
 ### TC-M3: Layout and readability
@@ -133,7 +143,7 @@ Expected:
 
 ## 6. Regression quick check
 - Begin button never leads to blank screen
-- Touch controls appear on Stage load
+- Tutorial Demo opens and exits cleanly
 - Bhakti vertical bar updates correctly
 - Stage transition and retry still work
 
@@ -156,18 +166,18 @@ For each issue, include:
 
 ### Desktop
 - [ ] Menu loads and Begin starts Stage
-- [ ] Movement and jump work
-- [ ] J/K attacks work
-- [ ] F blast works when Bhakti >= 20
+- [ ] Tutorial Demo autoplays and exits cleanly
+- [ ] Movement and jump work (arrows/drag + Space/Up)
+- [ ] Ctrl/Shift attacks work
+- [ ] Alt blast works when Bhakti >= 20
 - [ ] Chant input updates Bhakti and feedback
-- [ ] Q/E size-shift works after unlock
+- [ ] Page Up/Down and wheel size-shift work after unlock
 - [ ] Stage transition works
 - [ ] Game-over and retry work
 
 ### Mobile
-- [ ] Touch controls visible on Stage load
-- [ ] Held move buttons work continuously
-- [ ] Jump/attack/heavy/blast/size buttons respond
+- [ ] Legacy touch button clusters are absent
+- [ ] Core gameplay inputs respond on supported path
 - [ ] HUD remains readable with controls
 - [ ] Portrait and landscape are both usable (if supported)
 - [ ] Android speech works (if browser/context allows)

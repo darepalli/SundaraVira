@@ -192,6 +192,55 @@ class Hud {
       window.location.reload();
     };
 
+    this.tutorialOverlay = document.createElement("div");
+    this.tutorialOverlay.className = "tutorial-overlay";
+    this.tutorialOverlay.hidden = true;
+
+    this.tutorialCard = document.createElement("div");
+    this.tutorialCard.className = "tutorial-card";
+
+    this.tutorialTitle = document.createElement("div");
+    this.tutorialTitle.className = "tutorial-title";
+
+    this.tutorialBody = document.createElement("div");
+    this.tutorialBody.className = "tutorial-body";
+
+    this.tutorialProgress = document.createElement("div");
+    this.tutorialProgress.className = "tutorial-progress";
+
+    this.tutorialControls = document.createElement("div");
+    this.tutorialControls.className = "tutorial-controls";
+
+    this.tutorialControlNodes = {};
+    [
+      ["move", "Arrows"],
+      ["jump", "Jump"],
+      ["size", "Size"],
+      ["chant", "Chant"],
+      ["attack", "Attack"],
+      ["blast", "Blast"]
+    ].forEach(([key, label]) => {
+      const chip = document.createElement("span");
+      chip.className = "tutorial-key";
+      chip.textContent = label;
+      this.tutorialControlNodes[key] = chip;
+      this.tutorialControls.append(chip);
+    });
+
+    this.tutorialActionButton = document.createElement("button");
+    this.tutorialActionButton.type = "button";
+    this.tutorialActionButton.className = "tutorial-action";
+    this.tutorialActionButton.textContent = "Skip tutorial";
+    this.tutorialActionHandler = null;
+    this.tutorialActionButton.onclick = () => {
+      if (typeof this.tutorialActionHandler === "function") {
+        this.tutorialActionHandler();
+        return;
+      }
+
+      this.hideTutorialOverlay();
+    };
+
     this.chantInput.addEventListener("keydown", (event) => {
       if (event.isComposing) {
         return;
@@ -231,6 +280,15 @@ class Hud {
     );
     this.endgameOverlay.append(this.endgameCard);
 
+    this.tutorialCard.append(
+      this.tutorialTitle,
+      this.tutorialBody,
+      this.tutorialProgress,
+      this.tutorialControls,
+      this.tutorialActionButton
+    );
+    this.tutorialOverlay.append(this.tutorialCard);
+
     if (!this.speechRecognitionSupported) {
       this.micLanguageSelect.disabled = true;
       this.micButton.disabled = true;
@@ -243,6 +301,7 @@ class Hud {
     this.root.append(this.stats, this.chantPanel, this.message, this.micStatus, this.browserHint);
     document.body.append(this.root);
     document.body.append(this.endgameOverlay);
+    document.body.append(this.tutorialOverlay);
   }
 
   _makeStatBar(parent, label, modifierClass) {
@@ -383,6 +442,59 @@ class Hud {
     this.endgameOverlay.hidden = true;
   }
 
+  showTutorialOverlay(options = {}) {
+    const {
+      title = "Tutorial",
+      body = "",
+      progress = "",
+      activeControls = [],
+      actionText = "Skip tutorial",
+      onAction = null
+    } = options;
+
+    this.tutorialTitle.textContent = title;
+    this.tutorialBody.textContent = body;
+    this.tutorialProgress.textContent = progress;
+    this.tutorialProgress.hidden = !progress;
+    this.tutorialActionButton.textContent = actionText;
+    this.tutorialActionHandler = typeof onAction === "function" ? onAction : null;
+
+    Object.entries(this.tutorialControlNodes).forEach(([key, node]) => {
+      node.classList.toggle("active", activeControls.includes(key));
+    });
+
+    this.tutorialOverlay.hidden = false;
+  }
+
+  hideTutorialOverlay() {
+    this.tutorialActionHandler = null;
+    this.tutorialOverlay.hidden = true;
+  }
+
+  updateTutorialOverlay(options = {}) {
+    if (options.title !== undefined) {
+      this.tutorialTitle.textContent = options.title;
+    }
+    if (options.body !== undefined) {
+      this.tutorialBody.textContent = options.body;
+    }
+    if (options.progress !== undefined) {
+      this.tutorialProgress.textContent = options.progress;
+      this.tutorialProgress.hidden = !options.progress;
+    }
+    if (options.actionText !== undefined) {
+      this.tutorialActionButton.textContent = options.actionText;
+    }
+    if (options.onAction !== undefined) {
+      this.tutorialActionHandler = typeof options.onAction === "function" ? options.onAction : null;
+    }
+    if (options.activeControls !== undefined) {
+      Object.entries(this.tutorialControlNodes).forEach(([key, node]) => {
+        node.classList.toggle("active", options.activeControls.includes(key));
+      });
+    }
+  }
+
   triggerEndgameReplay() {
     if (typeof this.endgameReplayHandler === "function") {
       this.endgameReplayHandler();
@@ -455,7 +567,7 @@ class Hud {
 
     const hint = document.createElement("p");
     hint.className = "endgame-tip";
-    hint.textContent = "You can always switch back using the Gyro button.";
+    hint.textContent = "If you skip, swipe and touch movement remain available.";
 
     const btnRow = document.createElement("div");
     btnRow.style.cssText = "display:flex;gap:12px;justify-content:center;margin-top:4px";
@@ -509,6 +621,7 @@ class Hud {
     window.clearTimeout(this.autoOfferFlashTimeout);
     this.root.remove();
     this.endgameOverlay.remove();
+    this.tutorialOverlay.remove();
     this._bhaktiColumn.remove();
     this._gyroModal?.remove();
     this._gyroModal = null;

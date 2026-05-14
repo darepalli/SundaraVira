@@ -73,25 +73,107 @@ canvas {
   box-shadow: inset 0 1px 0 rgba(255, 222, 140, 0.10);
 }
 
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 8, 18, 0.76);
+  z-index: 35;
+  padding: 20px;
+}
+
+.tutorial-overlay[hidden] {
+  display: none !important;
+}
+
+.tutorial-card {
+  width: min(720px, calc(100% - 24px));
+  margin: 0;
+  padding: 26px 28px;
+  border-radius: 18px;
+  background:
+    linear-gradient(160deg, rgba(36, 20, 10, 0.98), rgba(10, 14, 32, 0.98));
+  box-shadow:
+    0 0 72px rgba(255, 153, 51, 0.24),
+    0 24px 70px rgba(0, 0, 0, 0.72),
+    inset 0 1px 0 rgba(255, 220, 140, 0.14);
+  border: 1px solid rgba(255, 196, 90, 0.42);
+}
+
 .tutorial-title {
   color: #ffd36d;
-  font-size: 13px;
+  font-size: 30px;
+  font-family: 'Georgia', 'Times New Roman', serif;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 8px;
 }
 
 .tutorial-body {
-  margin-top: 4px;
   color: #eef2ff;
-  font-size: 14px;
+  font-size: 18px;
   line-height: 1.45;
 }
 
 .tutorial-progress {
-  margin-top: 6px;
+  margin-top: 8px;
   color: #8ea4ff;
   font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tutorial-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  margin-bottom: 18px;
+}
+
+.tutorial-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 82px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 170, 255, 0.34);
+  background: rgba(13, 18, 44, 0.96);
+  color: #dbe4ff;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.tutorial-key.active {
+  color: #0d1023;
+  background: linear-gradient(135deg, #ffd36d, #ff9c2a);
+  border-color: rgba(255, 220, 120, 0.90);
+  box-shadow: 0 0 0 2px rgba(255, 183, 60, 0.20), 0 0 24px rgba(255, 166, 35, 0.38);
+  animation: tutorialKeyPulse 1s ease-in-out infinite;
+}
+
+.tutorial-action {
+  margin-top: 4px;
+  background: #f09a2a;
+  color: #111;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+}
+
+@keyframes tutorialKeyPulse {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.04);
+  }
 }
 
 .chant-panel {

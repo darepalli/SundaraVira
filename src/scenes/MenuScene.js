@@ -29,7 +29,7 @@ class MenuScene extends Phaser.Scene {
         tagline: "Devotion powers the leap. Chant to ascend Lanka.",
         start: "  Begin the Journey  ",
         hint: "Offer a chant to open the beacon path.\nCollect fragments, reach the beacon, and ascend Mainaka.",
-        controls: "WASD/Arrows — Move  |  Space/W — Jump  |  J/K — Attack  |  Q/E — Size Shift  |  F — Bhakti Blast",
+        controls: "Arrows — Move  |  Mouse drag — Move  |  Up/Space — Jump  |  PgUp/PgDn or wheel — Size  |  Ctrl/Shift or click — Attack  |  Alt/Middle — Blast",
         community: "🌐 Join Our Community"
       },
       hi: {
@@ -38,7 +38,7 @@ class MenuScene extends Phaser.Scene {
         tagline: "भक्ति से शक्ति मिलती है। जप करके लंका की ओर बढ़ें।",
         start: "  यात्रा आरंभ करें  ",
         hint: "बीकन मार्ग खोलने के लिए मंत्र अर्पित करें।\nफ्रैगमेंट्स एकत्र करें, बीकन तक पहुंचें, और मैनाक पर चढ़ें।",
-        controls: "WASD/Arrows — चलें  |  Space/W — कूदें  |  J/K — हमला  |  Q/E — आकार बदलें  |  F — भक्ति ब्लास्ट",
+        controls: "एरो — चलें  |  माउस ड्रैग — चलें  |  Up/Space — कूदें  |  PgUp/PgDn या wheel — आकार  |  Ctrl/Shift या click — हमला  |  Alt/Middle — भक्ति ब्लास्ट",
         community: "🌐 समुदाय से जुड़ें"
       },
       te: {
@@ -47,7 +47,7 @@ class MenuScene extends Phaser.Scene {
         tagline: "భక్తే శక్తి. జపంతో లంక యాత్రను కొనసాగించండి.",
         start: "  యాత్ర ప్రారంభం  ",
         hint: "బీకన్ మార్గం తెరవడానికి జపం సమర్పించండి.\nఫ్రాగ్మెంట్లు సేకరించి, బీకన్ చేరి, మైనాకం అధిరోహించండి.",
-        controls: "WASD/Arrows — కదలిక  |  Space/W — జంప్  |  J/K — దాడి  |  Q/E — పరిమాణ మార్పు  |  F — భక్తి బ్లాస్ట్",
+        controls: "Arrows — కదలిక  |  Mouse drag — కదలిక  |  Up/Space — జంప్  |  PgUp/PgDn లేదా wheel — పరిమాణం  |  Ctrl/Shift లేదా click — దాడి  |  Alt/Middle — భక్తి బ్లాస్ట్",
         community: "🌐 సమాజానికి చేరండి"
       }
     };
@@ -228,8 +228,25 @@ class MenuScene extends Phaser.Scene {
       this.scene.start("StageScene", { stageIndex: 0, uiLanguage: currentLanguage });
     });
 
+    const tutorialButton = this.add.text(cx, 364, "  Tutorial Demo  ", {
+      color: "#0f172a",
+      backgroundColor: "#4ab0d0",
+      fontSize: "18px",
+      fontStyle: "bold",
+      fontFamily: "'Trebuchet MS','Segoe UI',sans-serif",
+      padding: { left: 18, right: 18, top: 10, bottom: 10 },
+      stroke: "#1a7088", strokeThickness: 1,
+      shadow: { offsetX: 0, offsetY: 2, color: "#000", blur: 4, fill: true }
+    }).setOrigin(0.5).setDepth(10).setInteractive({ useHandCursor: true });
+
+    tutorialButton.on("pointerover", () => tutorialButton.setScale(1.04).setColor("#100820"));
+    tutorialButton.on("pointerout", () => tutorialButton.setScale(1).setColor("#0f172a"));
+    tutorialButton.on("pointerdown", () => {
+      this.scene.start("StageScene", { stageIndex: 0, uiLanguage: currentLanguage, tutorial: true });
+    });
+
     // ── Hint text ────────────────────────────────────────────────────
-    const hintText = this.add.text(cx, 395, copy[currentLanguage].hint, {
+    const hintText = this.add.text(cx, 410, copy[currentLanguage].hint, {
       color: "#8896cc", fontSize: "15px",
       fontFamily: "'Trebuchet MS','Segoe UI',sans-serif",
       wordWrap: { width: 680 }, align: "center"

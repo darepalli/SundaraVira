@@ -1,8 +1,8 @@
 window.SV_VERSION = {
   major: 1,
   minor: 0,
-  build: 11,
-  updatedAt: "2026-05-11"
+  build: 12,
+  updatedAt: "2026-05-14"
 };
 
 window.getSVVersionLabel = function getSVVersionLabel() {

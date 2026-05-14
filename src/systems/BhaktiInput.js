@@ -28,7 +28,17 @@ class BhaktiInput {
   }
 
   evaluate(input) {
-    return this.evaluateForLanguage(input, "en", { strict: false });
+    const englishResult = this.evaluateForLanguage(input, "en", { strict: false });
+    if (englishResult.success) {
+      return englishResult;
+    }
+
+    const hindiResult = this.evaluateForLanguage(input, "hi", { strict: false });
+    if (hindiResult.success) {
+      return hindiResult;
+    }
+
+    return this.evaluateForLanguage(input, "te", { strict: false });
   }
 
   evaluateForLanguage(input, language = "en", options = {}) {

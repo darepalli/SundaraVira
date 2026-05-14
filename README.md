@@ -11,11 +11,12 @@ Browser-playable action prototype inspired by Sundarakanda.
 ## What is implemented
 - Static-JS Phaser scene flow with Boot, Menu, Stage, and Victory scenes.
 - Side-scrolling action slice with movement, jump, hazards, and collectibles.
-- Bhakti system with chant input (typed and microphone when browser supports it).
-- Size transformation (`Q` small, `E` large).
-- Bhakti Blast (`F`) to clear nearby enemies.
+- Bhakti system with chant validation and beacon-offer progression.
+- Size transformation (`Page Down` small, `Page Up` large, mouse wheel or touch swipe).
+- Combat actions via light/heavy attacks and Bhakti Blast.
 - Two-stage progression driven by JSON stage data.
 - Dharma-influenced mission completion flow.
+- Menu-accessible Tutorial Demo that autoplays Stage 1 with animated control guidance.
 
 ## Run locally (no npm required)
 1. Start a simple static server from the project root:
@@ -35,7 +36,7 @@ Browser-playable action prototype inspired by Sundarakanda.
 
 ## Versioning and build numbers
 - The launch menu shows the runtime label in the format: `Version X.Y  Build Z`.
-- Current baseline is `Version 1.0  Build 1`.
+- Current baseline is `Version 1.0  Build 12`.
 - Version source of truth: `src/config/version.js`.
 
 Increment build for normal changes:
@@ -76,6 +77,7 @@ Run end-to-end checks in a real browser with an auto-started local dev server:
 Current e2e coverage includes:
 - Menu boot and Stage scene startup
 - Stage 1 objective completion path transitioning into Stage 2
+- Legacy on-screen touch controls remain removed from gameplay
 
 ## Deploy options
 - Static hosting friendly: GitHub Pages, Netlify, or Vercel.
