@@ -80,15 +80,13 @@ class StageScene extends Phaser.Scene {
     this.pointerTargetX = null;
     this.pointerMoveActive = false;
     this.pointerJumpQueued = false;
-    this.touchLeft = false;
-    this.touchRight = false;
-    this.touchJumpQueued = false;
-    this.touchDiag = false;
-    this._touchAttackPending = false;
-    this._touchHeavyPending = false;
-    this._touchBlastPending = false;
-    this._touchSmallPending = false;
-    this._touchLargePending = false;
+    this._pointerAttackPending = false;
+    this._pointerHeavyPending = false;
+    this._pointerBlastPending = false;
+    this._gyroPermissionAttempted = false;
+    this._lastTouchTapAt = -1000;
+    this._lastLeftClickAt = -1000;
+    this._lastRightClickAt = -1000;
     this._touchTutorialShown = false;
 
     this.lastEnemyHitAt = -1000;
@@ -120,14 +118,12 @@ class StageScene extends Phaser.Scene {
       Phaser.Input.Keyboard.KeyCodes.LEFT,
       Phaser.Input.Keyboard.KeyCodes.RIGHT,
       Phaser.Input.Keyboard.KeyCodes.UP,
-      Phaser.Input.Keyboard.KeyCodes.A,
-      Phaser.Input.Keyboard.KeyCodes.D,
-      Phaser.Input.Keyboard.KeyCodes.W,
-      Phaser.Input.Keyboard.KeyCodes.Q,
-      Phaser.Input.Keyboard.KeyCodes.E,
-      Phaser.Input.Keyboard.KeyCodes.F,
-      Phaser.Input.Keyboard.KeyCodes.J,
-      Phaser.Input.Keyboard.KeyCodes.K,
+      Phaser.Input.Keyboard.KeyCodes.SPACE,
+      Phaser.Input.Keyboard.KeyCodes.CTRL,
+      Phaser.Input.Keyboard.KeyCodes.SHIFT,
+      Phaser.Input.Keyboard.KeyCodes.ALT,
+      Phaser.Input.Keyboard.KeyCodes.PAGE_UP,
+      Phaser.Input.Keyboard.KeyCodes.PAGE_DOWN,
       Phaser.Input.Keyboard.KeyCodes.ENTER
     ];
 
@@ -170,15 +166,13 @@ class StageScene extends Phaser.Scene {
     this.pointerMoveActive = false;
     this.pointerTargetX = null;
     this.pointerJumpQueued = false;
-    this.touchLeft = false;
-    this.touchRight = false;
-    this.touchJumpQueued = false;
-    this.touchDiag = false;
-    this._touchAttackPending = false;
-    this._touchHeavyPending = false;
-    this._touchBlastPending = false;
-    this._touchSmallPending = false;
-    this._touchLargePending = false;
+    this._pointerAttackPending = false;
+    this._pointerHeavyPending = false;
+    this._pointerBlastPending = false;
+    this._gyroPermissionAttempted = false;
+    this._lastTouchTapAt = -1000;
+    this._lastLeftClickAt = -1000;
+    this._lastRightClickAt = -1000;
     this.lastEnemyHitAt = -1000;
     this.lastFragmentCollectedAt = -100000;
     this.isTypingChant = false;
@@ -313,17 +307,14 @@ class StageScene extends Phaser.Scene {
       this.uiLanguage
     );
 
-    this._bindTouchControls();
+    this.hud.destroyTouchControls();
     this.updateHud();
     
     // Hide chant panel UI completely - we auto-offer recognized chants near beacon
     this.hud?.hideChantPanelCompletely();
     
     this.showTouchTutorialIfNeeded();
-    // Show gyro toggle button whenever DeviceOrientationEvent is available.
-    if (this.gyroInput.isSupported) {
-      this.hud.showGyroToggle(true);
-    }
+    document.body.classList.remove("touch-active");
     if (this.debugTransitionsEnabled) {
       this.createDebugOverlay();
       this.updateDebugOverlay();
@@ -346,14 +337,12 @@ class StageScene extends Phaser.Scene {
     const keyboard = this.input.keyboard;
     this.cursors = keyboard.createCursorKeys();
     this.keys = {
-      left: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
-      right: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
-      up: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
-      small: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q),
-      large: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
-      blast: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F),
-      attack: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.J),
-      heavyAttack: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K),
+      jump: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
+      small: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PAGE_DOWN),
+      large: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.PAGE_UP),
+      blast: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ALT),
+      attack: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.CTRL),
+      heavyAttack: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
       retry: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER)
     };
 
@@ -387,28 +376,26 @@ class StageScene extends Phaser.Scene {
 
     this.playerActor?.syncLabel();
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.small) || this._touchSmallPending || this.gyroInput?.consumeSwipeDown()) {
-      this._touchSmallPending = false;
+    if (Phaser.Input.Keyboard.JustDown(this.keys.small) || this.gyroInput?.consumeSwipeDown()) {
       this.tryApplySizeMode("small");
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.large) || this._touchLargePending || this.gyroInput?.consumeSwipeUp()) {
-      this._touchLargePending = false;
+    if (Phaser.Input.Keyboard.JustDown(this.keys.large) || this.gyroInput?.consumeSwipeUp()) {
       this.tryApplySizeMode("large");
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.blast) || this._touchBlastPending) {
-      this._touchBlastPending = false;
+    if (Phaser.Input.Keyboard.JustDown(this.keys.blast) || this._pointerBlastPending) {
+      this._pointerBlastPending = false;
       this.useBhaktiBlast();
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.attack) || this._touchAttackPending) {
-      this._touchAttackPending = false;
+    if (Phaser.Input.Keyboard.JustDown(this.keys.attack) || this._pointerAttackPending) {
+      this._pointerAttackPending = false;
       this.triggerMeleeAttack(false);
     }
 
-    if (Phaser.Input.Keyboard.JustDown(this.keys.heavyAttack) || this._touchHeavyPending) {
-      this._touchHeavyPending = false;
+    if (Phaser.Input.Keyboard.JustDown(this.keys.heavyAttack) || this._pointerHeavyPending) {
+      this._pointerHeavyPending = false;
       this.triggerMeleeAttack(true);
     }
 
@@ -416,10 +403,6 @@ class StageScene extends Phaser.Scene {
       this.enterGameOver();
     }
 
-    // Update gyro tilt indicator (cosmetic, always safe to run)
-    if (this.gyroInput?.active) {
-      this.hud.updateGyroIndicator(this.gyroInput.getTiltX());
-    }
   }
 
   checkGoalContactFallback() {
@@ -503,7 +486,7 @@ class StageScene extends Phaser.Scene {
       shadow: { offsetX: 0, offsetY: 0, color: "#ffaa00", blur: 12, stroke: true, fill: true }
     });
 
-    this.controlsText = this.add.text(20, 50, "Move: A/D/Arrows | Jump: W/Up | Attack: J (light) K (heavy) | Size: Q/E | F: Bhakti Blast", {
+    this.controlsText = this.add.text(20, 50, "Move: Arrows/mouse drag/touch drag | Jump: Up/Space or double-left click | Attack: Right click | Heavy: double-right | Size: PgUp/PgDn or wheel", {
       color: "#8894b8",
       fontSize: compactViewport ? "11px" : "12px",
       wordWrap: { width: compactViewport ? 520 : 900 }
@@ -627,31 +610,17 @@ class StageScene extends Phaser.Scene {
 
 
   _bindTouchControls() {
-    this.hud.createTouchControls({
-      onLeftDown:      () => { this.touchLeft = true; },
-      onLeftUp:        () => { this.touchLeft = false; },
-      onRightDown:     () => { this.touchRight = true; },
-      onRightUp:       () => { this.touchRight = false; },
-      onJump:          () => { this.touchJumpQueued = true; },
-      onDiagDown:      () => { this.touchDiag = true; },
-      onDiagUp:        () => { this.touchDiag = false; },
-      onAttack:        () => { this._touchAttackPending = true; },
-      onHeavy:         () => { this._touchHeavyPending = true; },
-      onBlast:         () => { this._touchBlastPending = true; },
-      onSmall:         () => { this._touchSmallPending = true; },
-      onLarge:         () => { this._touchLargePending = true; },
-      onGyroToggle:    () => { this._onGyroToggle(); },
-      onGyroCalibrate: () => { this.gyroInput?.calibrate(); this.hud.setMessage("Gyro recalibrated to current tilt."); }
-    });
-    document.body.classList.add("touch-active");
+    // Legacy hook retained for compatibility with older code paths.
+    // On-screen controls are intentionally disabled for the streamlined scheme.
+    this.hud?.destroyTouchControls();
+    document.body.classList.remove("touch-active");
   }
 
   async _onGyroToggle() {
     if (!this.gyroInput) return;
     if (this.gyroInput.active) {
       this.gyroInput.stop();
-      this.hud.setGyroActive(false);
-      this.hud.setMessage("Gyro off — using on-screen buttons.");
+      this.hud.setMessage("Gyro off — keyboard/mouse/touch movement remains available.");
     } else {
       const granted = await this.gyroInput.requestPermission();
       if (!granted) {
@@ -659,7 +628,6 @@ class StageScene extends Phaser.Scene {
         return;
       }
       this.gyroInput.start();
-      this.hud.setGyroActive(true);
       this.hud.setMessage("Gyro on — tilt to move, shake up to jump, swipe up/down to resize.");
     }
   }
@@ -680,7 +648,7 @@ class StageScene extends Phaser.Scene {
     }
 
     this._touchTutorialShown = true;
-    this.hud.setMessage("Touch controls: left pad moves, up jumps, diagonal does forward-jump, right pad triggers size/attacks/blast.");
+    this.hud.setMessage("Mobile controls: tilt to move, shake to jump, swipe up/down to resize, tap to attack, double-tap for heavy.");
 
     this.time.delayedCall(5200, () => {
       if (!this.scene.isActive("StageScene") || this.isGameOver || this.isStageTransitioning) {
@@ -701,11 +669,47 @@ class StageScene extends Phaser.Scene {
 
     this.input.on("pointerdown", (pointer) => {
       window.audioManager?.unlock();
+      const evt = pointer.event;
+      const isTouchPointer = pointer.pointerType === "touch" || evt?.pointerType === "touch" || evt?.type?.startsWith?.("touch");
 
-      if (pointer.rightButtonDown()) {
-        this.useBhaktiBlast();
+      if (isTouchPointer && evt?.touches?.length >= 2) {
+        this._pointerBlastPending = true;
         return;
       }
+
+      if (isTouchPointer && this.gyroInput?.isSupported && !this.gyroInput.active && !this._gyroPermissionAttempted) {
+        this._gyroPermissionAttempted = true;
+        this.gyroInput.requestPermission().then((granted) => {
+          if (granted) {
+            this.gyroInput.start();
+            this.hud.setMessage("Gyro active. Tilt to move, shake to jump, swipe up/down to resize.");
+          }
+        }).catch(() => {
+          // Keep touch movement available if permission flow errors.
+        });
+      }
+
+      if (pointer.middleButtonDown()) {
+        this._pointerBlastPending = true;
+        return;
+      }
+
+      if (pointer.rightButtonDown()) {
+        const now = this.time.now;
+        if (now - this._lastRightClickAt <= 300) {
+          this._pointerHeavyPending = true;
+        } else {
+          this._pointerAttackPending = true;
+        }
+        this._lastRightClickAt = now;
+        return;
+      }
+
+      const now = this.time.now;
+      if (!isTouchPointer && now - this._lastLeftClickAt <= 280) {
+        this.pointerJumpQueued = true;
+      }
+      this._lastLeftClickAt = now;
 
       this.pointerMoveActive = true;
       this.pointerTargetX = pointer.worldX;
@@ -721,10 +725,34 @@ class StageScene extends Phaser.Scene {
       this.pointerTargetX = pointer.worldX;
     });
 
-    this.input.on("pointerup", () => {
+    this.input.on("pointerup", (pointer) => {
+      const evt = pointer.event;
+      const isTouchPointer = pointer.pointerType === "touch" || evt?.pointerType === "touch" || evt?.type?.startsWith?.("touch");
+
+      if (isTouchPointer) {
+        const startX = Number.isFinite(pointer.downX) ? pointer.downX : pointer.worldX;
+        const startY = Number.isFinite(pointer.downY) ? pointer.downY : pointer.worldY;
+        const endX = Number.isFinite(pointer.upX) ? pointer.upX : pointer.worldX;
+        const endY = Number.isFinite(pointer.upY) ? pointer.upY : pointer.worldY;
+        const moved = Phaser.Math.Distance.Between(startX, startY, endX, endY) > 18;
+        if (!moved) {
+          if (pointer.worldY < this.player.y - 25) {
+            this.pointerJumpQueued = true;
+          } else {
+            const now = this.time.now;
+            if (now - this._lastTouchTapAt <= 280) {
+              this._pointerHeavyPending = true;
+              this._lastTouchTapAt = -1000;
+            } else {
+              this._pointerAttackPending = true;
+              this._lastTouchTapAt = now;
+            }
+          }
+        }
+      }
+
       this.pointerMoveActive = false;
       this.pointerTargetX = null;
-      this.pointerJumpQueued = false;
     });
 
     this.input.on("wheel", (_pointer, _gameObjects, _deltaX, deltaY) => {
@@ -912,15 +940,13 @@ class StageScene extends Phaser.Scene {
     this.pointerMoveActive = false;
     this.pointerTargetX = null;
     this.pointerJumpQueued = false;
-    this.touchLeft = false;
-    this.touchRight = false;
-    this.touchJumpQueued = false;
-    this.touchDiag = false;
-    this._touchAttackPending = false;
-    this._touchHeavyPending = false;
-    this._touchBlastPending = false;
-    this._touchSmallPending = false;
-    this._touchLargePending = false;
+    this._pointerAttackPending = false;
+    this._pointerHeavyPending = false;
+    this._pointerBlastPending = false;
+    this._gyroPermissionAttempted = false;
+    this._lastTouchTapAt = -1000;
+    this._lastLeftClickAt = -1000;
+    this._lastRightClickAt = -1000;
 
     this.goalResolved = false;
     this.isStageTransitioning = false;
@@ -932,7 +958,8 @@ class StageScene extends Phaser.Scene {
     this.createEntitiesFromStage();
     this.bindCollisions();
     this.setEnemyPauseForTyping(this.isTypingChant);
-    this._bindTouchControls();
+    this.hud?.destroyTouchControls();
+    document.body.classList.remove("touch-active");
     this.updateHud();
     if (this.debugTransitionsEnabled) {
       this.updateDebugOverlay();
@@ -1297,9 +1324,9 @@ class StageScene extends Phaser.Scene {
     // Gyro tilt: normalised [-1, 1]; 0 when gyro inactive or within dead-zone.
     const gyroTilt = this.gyroInput?.active ? this.gyroInput.getTiltX() : 0;
 
-    const leftPressed  = this.cursors.left.isDown  || this.keys.left.isDown  || this.touchLeft  || gyroTilt < 0;
-    const rightPressed = this.cursors.right.isDown || this.keys.right.isDown || this.touchRight || this.touchDiag || gyroTilt > 0;
-    const upPressed    = this.cursors.up.isDown    || this.keys.up.isDown    || this.touchDiag;
+    const leftPressed  = this.cursors.left.isDown || gyroTilt < 0;
+    const rightPressed = this.cursors.right.isDown || gyroTilt > 0;
+    const upPressed    = this.cursors.up.isDown || this.keys.jump.isDown;
 
     const speed = this.playerActor.getMoveSpeed();
     const jump  = this.playerActor.getJumpPower();
@@ -1331,12 +1358,6 @@ class StageScene extends Phaser.Scene {
       window.audioManager?.playJump();
       this.playerActor.jump(jump);
       this.pointerJumpQueued = false;
-    }
-
-    if (this.touchJumpQueued && this.playerActor.canJump()) {
-      window.audioManager?.playJump();
-      this.playerActor.jump(jump);
-      this.touchJumpQueued = false;
     }
 
     // Gyro shake up → jump

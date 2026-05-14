@@ -412,130 +412,8 @@ class Hud {
     this.setMicStatus("idle");
   }
 
-  _makeTouchBtn(label, extraClass) {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = extraClass ? `touch-btn ${extraClass}` : "touch-btn";
-    btn.textContent = label;
-    btn.setAttribute("aria-label", label);
-    const pressOn = () => btn.classList.add("touch-btn-held");
-    const pressOff = () => btn.classList.remove("touch-btn-held");
-    btn.addEventListener("pointerdown", pressOn);
-    btn.addEventListener("pointerup", pressOff);
-    btn.addEventListener("pointercancel", pressOff);
-    btn.addEventListener("pointerleave", pressOff);
-    btn.addEventListener("touchstart", (e) => { e.preventDefault(); }, { passive: false });
-    btn.addEventListener("contextmenu", (e) => { e.preventDefault(); });
-    return btn;
-  }
-
-  createTouchControls(callbacks) {
-    if (this._touchControlsEl) return;
-
-    const vibrateTap = () => {
-      try {
-        if (navigator.vibrate) {
-          navigator.vibrate(10);
-        }
-      } catch (_error) {
-        // Ignore vibration failures on unsupported browsers/platforms.
-      }
-    };
-
-    // ── Left cluster: D-pad + Gyro panel ──────────────────────────────
-    const leftCluster = document.createElement("div");
-    leftCluster.className = "touch-cluster touch-cluster-left";
-
-    const jumpBtn  = this._makeTouchBtn("↑", "touch-btn-jump");
-    const diagBtn  = this._makeTouchBtn("↗", "touch-btn-diag");
-    const leftBtn  = this._makeTouchBtn("←");
-    const rightBtn = this._makeTouchBtn("→");
-
-    const _bindHeld = (btn, onDown, onUp) => {
-      btn.addEventListener("pointerdown", (e) => { e.preventDefault(); btn.setPointerCapture(e.pointerId); vibrateTap(); onDown(); });
-      btn.addEventListener("pointerup",     () => onUp());
-      btn.addEventListener("pointercancel", () => onUp());
-    };
-
-    _bindHeld(leftBtn,  callbacks.onLeftDown,  callbacks.onLeftUp);
-    _bindHeld(rightBtn, callbacks.onRightDown, callbacks.onRightUp);
-    _bindHeld(diagBtn, callbacks.onDiagDown, callbacks.onDiagUp);
-    jumpBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); vibrateTap(); callbacks.onJump(); });
-
-    const dpadRow = document.createElement("div");
-    dpadRow.className = "touch-row";
-    dpadRow.append(leftBtn, rightBtn);
-
-    // Gyro panel — replaces D-pad when gyro mode is active
-    const gyroPanel = document.createElement("div");
-    gyroPanel.className = "gyro-panel";
-    gyroPanel.hidden = true;
-
-    const gyroIndicator = document.createElement("div");
-    gyroIndicator.className = "gyro-indicator";
-    const gyroBall = document.createElement("div");
-    gyroBall.className = "gyro-ball";
-    gyroIndicator.append(gyroBall);
-    this._gyroBall = gyroBall;
-
-    const gyroHint = document.createElement("div");
-    gyroHint.className = "gyro-hint";
-    gyroHint.textContent = "swipe ↑ large  ↓ small";
-
-    const calibrateBtn = this._makeTouchBtn("⊙", "touch-btn-calibrate");
-    calibrateBtn.setAttribute("aria-label", "Recalibrate tilt");
-    calibrateBtn.addEventListener("pointerdown", (e) => {
-      e.preventDefault(); vibrateTap();
-      if (callbacks.onGyroCalibrate) callbacks.onGyroCalibrate();
-    });
-
-    gyroPanel.append(gyroIndicator, gyroHint, calibrateBtn);
-    this._gyroPanel = gyroPanel;
-    this._dpadEls = [jumpBtn, diagBtn, dpadRow];
-
-    // Gyro toggle button — hidden until showGyroToggle(true) is called
-    const gyroToggleBtn = this._makeTouchBtn("Gyro", "touch-btn-gyro-toggle");
-    gyroToggleBtn.setAttribute("aria-label", "Enable gyro controls");
-    gyroToggleBtn.hidden = true;
-    gyroToggleBtn.addEventListener("pointerdown", (e) => {
-      e.preventDefault(); vibrateTap();
-      if (callbacks.onGyroToggle) callbacks.onGyroToggle();
-    });
-    this._gyroToggleBtn = gyroToggleBtn;
-
-    leftCluster.append(jumpBtn, diagBtn, dpadRow, gyroPanel, gyroToggleBtn);
-
-    // ── Right cluster: actions ─────────────────────────────────────
-    const rightCluster = document.createElement("div");
-    rightCluster.className = "touch-cluster touch-cluster-right";
-
-    const attackBtn = this._makeTouchBtn("⚔", "touch-btn-attack");
-    const heavyBtn  = this._makeTouchBtn("⚡", "touch-btn-heavy");
-    const blastBtn  = this._makeTouchBtn("☄", "touch-btn-blast");
-    const smallBtn  = this._makeTouchBtn("▼", "touch-btn-size");
-    const largeBtn  = this._makeTouchBtn("▲", "touch-btn-size");
-
-    attackBtn.addEventListener("pointerdown", (e) => { e.preventDefault(); vibrateTap(); callbacks.onAttack(); });
-    heavyBtn.addEventListener("pointerdown",  (e) => { e.preventDefault(); vibrateTap(); callbacks.onHeavy(); });
-    blastBtn.addEventListener("pointerdown",  (e) => { e.preventDefault(); vibrateTap(); callbacks.onBlast(); });
-    smallBtn.addEventListener("pointerdown",  (e) => { e.preventDefault(); vibrateTap(); callbacks.onSmall(); });
-    largeBtn.addEventListener("pointerdown",  (e) => { e.preventDefault(); vibrateTap(); callbacks.onLarge(); });
-
-    const sizeRow = document.createElement("div");
-    sizeRow.className = "touch-row";
-    sizeRow.append(smallBtn, largeBtn);
-
-    const actionRow = document.createElement("div");
-    actionRow.className = "touch-row";
-    actionRow.append(attackBtn, heavyBtn, blastBtn);
-
-    rightCluster.append(sizeRow, actionRow);
-
-    // ── Assemble ───────────────────────────────────────────────────
-    this._touchControlsEl = document.createElement("div");
-    this._touchControlsEl.className = "touch-controls";
-    this._touchControlsEl.append(leftCluster, rightCluster);
-    document.body.append(this._touchControlsEl);
+  createTouchControls(_callbacks) {
+    // On-screen gameplay buttons were removed in favor of gestures/gyro.
   }
 
   destroyTouchControls() {
@@ -547,39 +425,20 @@ class Hud {
     this._gyroToggleBtn = null;
   }
 
-  /**
-   * Show or hide the gyro-toggle button.
-   * Called by StageScene once DeviceOrientationEvent support is confirmed.
-   */
-  showGyroToggle(visible) {
-    if (!this._gyroToggleBtn) return;
-    this._gyroToggleBtn.hidden = !visible;
+  showGyroToggle(_visible) {
+    // Retained for scene compatibility; no on-screen controls exist now.
   }
 
-  /**
-   * Switch the left cluster between D-pad mode and gyro-indicator mode.
-   * @param {boolean} active
-   */
-  setGyroActive(active) {
-    if (!this._gyroPanel) return;
-    this._gyroPanel.hidden = !active;
-    if (this._dpadEls) {
-      this._dpadEls.forEach((el) => { el.hidden = active; });
-    }
-    if (this._gyroToggleBtn) {
-      this._gyroToggleBtn.textContent = active ? "Keys" : "Gyro";
-      this._gyroToggleBtn.setAttribute("aria-label", active ? "Switch to on-screen buttons" : "Enable gyro controls");
-    }
+  setGyroActive(_active) {
+    // Retained for scene compatibility; no on-screen controls exist now.
   }
 
   /**
    * Visually move the indicator ball to reflect current tilt.
    * @param {number} tiltX  Normalised value in [-1, 1]
    */
-  updateGyroIndicator(tiltX) {
-    if (!this._gyroBall) return;
-    const maxOffset = 18; // px, matches indicator track width
-    this._gyroBall.style.transform = `translateX(${tiltX * maxOffset}px)`;
+  updateGyroIndicator(_tiltX) {
+    // Retained for scene compatibility; indicator UI was removed.
   }
 
   destroy() {

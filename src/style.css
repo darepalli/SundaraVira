@@ -323,182 +323,6 @@ button:hover {
   opacity: 0.85;
 }
 
-/* ── Touch controls (mobile / touch devices) ──────────────── */
-.touch-controls {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  padding: 0 8px calc(10px + env(safe-area-inset-bottom));
-  pointer-events: none;
-  z-index: 30;
-}
-
-.touch-cluster {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  pointer-events: none;
-}
-
-.touch-row {
-  display: flex;
-  gap: 10px;
-  pointer-events: none;
-}
-
-.touch-btn {
-  width: clamp(54px, 12vw, 74px);
-  height: clamp(54px, 12vw, 74px);
-  background: rgba(16, 24, 72, 0.78);
-  border: 2px solid rgba(140, 170, 255, 0.55);
-  border-radius: 14px;
-  color: #dde4ff;
-  font-size: clamp(22px, 3.8vw, 30px);
-  font-weight: bold;
-  cursor: pointer;
-  pointer-events: auto;
-  touch-action: manipulation;
-  user-select: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.10);
-  transition: background 0.08s, border-color 0.08s;
-}
-
-.touch-btn:active,
-.touch-btn-held {
-  background: rgba(70, 50, 200, 0.88);
-  border-color: rgba(200, 180, 255, 0.90);
-  transform: scale(0.93);
-}
-
-.touch-btn-jump {
-  background: rgba(10, 60, 20, 0.78);
-  border-color: rgba(80, 220, 100, 0.60);
-}
-
-.touch-btn-diag {
-  background: rgba(24, 70, 18, 0.82);
-  border-color: rgba(130, 235, 120, 0.75);
-}
-
-.touch-btn-attack {
-  background: rgba(140, 30, 30, 0.78);
-  border-color: rgba(255, 120, 70, 0.65);
-}
-
-.touch-btn-heavy {
-  background: rgba(90, 10, 100, 0.78);
-  border-color: rgba(210, 110, 255, 0.65);
-}
-
-.touch-btn-blast {
-  background: rgba(8, 50, 110, 0.78);
-  border-color: rgba(70, 190, 255, 0.65);
-}
-
-.touch-btn-size {
-  width: clamp(48px, 10vw, 64px);
-  height: clamp(48px, 10vw, 64px);
-  font-size: clamp(18px, 3vw, 24px);
-  background: rgba(20, 70, 30, 0.78);
-  border-color: rgba(90, 210, 90, 0.60);
-}
-
-/* ── Gyro indicator panel (replaces D-pad when gyro is active) ─── */
-.gyro-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  pointer-events: auto;
-}
-
-/* Pill-shaped track that shows tilt direction */
-.gyro-indicator {
-  width: 68px;
-  height: 36px;
-  background: rgba(10, 18, 60, 0.82);
-  border: 2px solid rgba(100, 160, 255, 0.55);
-  border-radius: 18px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-/* Ball moves left/right via JS transform to show tilt */
-.gyro-ball {
-  width: 22px;
-  height: 22px;
-  background: radial-gradient(circle at 38% 35%, #9cd4ff, #1a55cc);
-  border-radius: 50%;
-  position: absolute;
-  transition: transform 0.05s linear;
-  box-shadow: 0 0 8px rgba(100, 180, 255, 0.75);
-  pointer-events: none;
-}
-
-.gyro-hint {
-  font-size: 9px;
-  color: rgba(180, 210, 255, 0.72);
-  text-align: center;
-  line-height: 1.4;
-  pointer-events: none;
-  user-select: none;
-}
-
-/* Calibrate button */
-.touch-btn-calibrate {
-  background: rgba(14, 50, 80, 0.78);
-  border-color: rgba(70, 155, 210, 0.60);
-  width: clamp(44px, 10vw, 58px);
-  height: clamp(44px, 10vw, 58px);
-  font-size: clamp(18px, 3vw, 24px);
-}
-
-/* Gyro/Keys toggle button */
-.touch-btn-gyro-toggle {
-  background: rgba(18, 18, 55, 0.78);
-  border-color: rgba(120, 120, 200, 0.55);
-  width: clamp(48px, 11vw, 64px);
-  height: clamp(36px, 8vw, 46px);
-  font-size: clamp(11px, 2.2vw, 14px);
-  letter-spacing: 0.02em;
-  font-weight: 600;
-  border-radius: 10px;
-}
-
-.touch-btn-gyro-toggle:active,
-.touch-btn-gyro-toggle.touch-btn-held {
-  background: rgba(50, 40, 160, 0.88);
-  border-color: rgba(180, 160, 255, 0.90);
-}
-
-/* Keep HUD pinned at top on touch devices too */
-body.touch-active .hud {
-  top: 8px;
-  bottom: auto;
-}
-
-/* Shrink and re-center bhakti column so it doesn't clash with left cluster */
-body.touch-active .bhakti-column {
-  top: 28%;
-}
-
-body.touch-active .bhakti-track {
-  height: 150px;
-}
-
 /* ── Responsive layout: keep gameplay area clear on smaller screens ── */
 @media (max-width: 900px), (max-height: 760px) {
   .hud {
@@ -583,15 +407,6 @@ body.touch-active .bhakti-track {
     font-size: 10px;
   }
 
-  .touch-controls {
-    padding-left: 4px;
-    padding-right: 4px;
-  }
-
-  .touch-cluster,
-  .touch-row {
-    gap: 7px;
-  }
 }
 
 @media (max-width: 480px), (max-height: 640px) {
@@ -608,10 +423,6 @@ body.touch-active .bhakti-track {
   .stat-value {
     width: 24px;
     font-size: 11px;
-  }
-
-  .touch-controls {
-    padding-bottom: calc(6px + env(safe-area-inset-bottom));
   }
 
   .bhakti-column {
@@ -666,28 +477,6 @@ body.touch-active .bhakti-track {
   .mic-status,
   .browser-hint {
     display: none;
-  }
-
-  .touch-controls {
-    padding: 0 4px calc(4px + env(safe-area-inset-bottom));
-  }
-
-  .touch-cluster,
-  .touch-row {
-    gap: 5px;
-  }
-
-  .touch-btn {
-    width: clamp(44px, 10vh, 56px);
-    height: clamp(44px, 10vh, 56px);
-    font-size: clamp(18px, 4vh, 24px);
-    border-radius: 10px;
-  }
-
-  .touch-btn-size {
-    width: clamp(40px, 8.5vh, 50px);
-    height: clamp(40px, 8.5vh, 50px);
-    font-size: clamp(15px, 3vh, 20px);
   }
 
   .bhakti-column {

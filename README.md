@@ -93,12 +93,14 @@ This repo includes a workflow at `.github/workflows/deploy-pages.yml` that deplo
 Note: First deployment may take a few minutes while Pages is provisioned.
 
 ## Controls
-- Move: `A/D` or left/right arrows
-- Jump: `W` or up arrow
-- Size shift: `Q` (small), `E` (large)
-- Bhakti Blast: `F`
+- Move: left/right arrows, mouse click-and-move/drag, or touch drag
+- Jump: up arrow or space (desktop), double-left click, or touch tap above player
+- Size shift: Page Down (small), Page Up (large), or wheel scroll / touch swipe down/up
+- Attack: Ctrl (light) / Shift (heavy), right click (light), double-right click (heavy), touch tap/double-tap
+- Bhakti Blast: Alt, middle click, or two-finger touch tap
 - Chant input: type in HUD and press Enter, or use mic button
-- On-screen controls: visible in gameplay (left cluster for move/jump, right cluster for size/attack/blast)
+- Mobile movement: gyro tilt (when permission granted) with shake-to-jump support
+- On-screen control buttons: removed from gameplay
 
 ## Repository structure
 - `Gameplot.md` - gameplay design document

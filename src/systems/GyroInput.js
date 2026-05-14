@@ -191,14 +191,6 @@ class GyroInput {
 
   _onTouchStart(event) {
     if (event.touches.length !== 1) return;
-    // Ignore touches that start on the on-screen button clusters so that
-    // button taps are never misread as swipes.
-    const target = event.target;
-    if (target?.closest?.(".touch-controls")) {
-      this._swipeStartY = null;
-      this._swipeStartX = null;
-      return;
-    }
     this._swipeStartY = event.touches[0].clientY;
     this._swipeStartX = event.touches[0].clientX;
   }
