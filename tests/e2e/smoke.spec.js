@@ -88,3 +88,65 @@ test("does not render legacy on-screen touch controls", async ({ page }) => {
   await expect(page.locator(".touch-controls")).toHaveCount(0);
   await expect(page.locator(".touch-btn")).toHaveCount(0);
 });
+
+test("returns to menu after tutorial completion input", async ({ page }) => {
+  await page.goto("/");
+
+  await page.waitForFunction(() => {
+    return Boolean(window.game && window.game.scene && window.game.scene.isActive("MenuScene"));
+  });
+
+  await page.evaluate(() => {
+    window.game.scene.start("StageScene", { stageIndex: 0, tutorial: true });
+  });
+
+  await page.waitForFunction(() => {
+    return Boolean(window.game && window.game.scene && window.game.scene.isActive("StageScene"));
+  });
+
+  await expect(page.locator(".tutorial-overlay")).toBeVisible();
+
+  await page.evaluate(() => {
+    const stage = window.game.scene.getScene("StageScene");
+    stage.finishTutorialDemo();
+  });
+
+  await expect(page.locator(".tutorial-title")).toContainText("Tutorial complete");
+
+  await page.mouse.click(480, 140);
+
+  await page.waitForFunction(() => {
+    return Boolean(window.game && window.game.scene && window.game.scene.isActive("MenuScene"));
+  }, { timeout: 5000 });
+});
+
+test("returns to menu after tutorial goal completion", async ({ page }) => {
+  await page.goto("/");
+
+  await page.waitForFunction(() => {
+    return Boolean(window.game && window.game.scene && window.game.scene.isActive("MenuScene"));
+  });
+
+  await page.evaluate(() => {
+    window.game.scene.start("StageScene", { stageIndex: 0, tutorial: true });
+  });
+
+  await page.waitForFunction(() => {
+    return Boolean(window.game && window.game.scene && window.game.scene.isActive("StageScene"));
+  });
+
+  await page.evaluate(() => {
+    const stage = window.game.scene.getScene("StageScene");
+    stage.state.fragments = stage.targetFragments;
+    stage.state.beaconChantOffered = true;
+    stage.handleGoalTouch();
+  });
+
+  await expect(page.locator(".tutorial-title")).toContainText("Tutorial complete", { timeout: 5000 });
+
+  await page.mouse.click(480, 140);
+
+  await page.waitForFunction(() => {
+    return Boolean(window.game && window.game.scene && window.game.scene.isActive("MenuScene"));
+  }, { timeout: 5000 });
+});

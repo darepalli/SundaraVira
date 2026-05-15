@@ -7,6 +7,7 @@ class AudioManager {
     this.useAudioFiles = false; // Toggle between synth and files
     this.lastChantAt = 0;
     this.minChantGapMs = 380;
+    this.missingAudioFiles = [];
   }
 
   ensureContext() {
@@ -49,7 +50,11 @@ class AudioManager {
     try {
       const response = await fetch(filePath);
       if (!response.ok) {
-        console.warn(`[AudioManager] Could not load audio file: ${filePath} (${response.status})`);
+        if (response.status === 404) {
+          this.missingAudioFiles.push(filePath);
+        } else {
+          console.warn(`[AudioManager] Could not load audio file: ${filePath} (${response.status})`);
+        }
         return false;
       }
 
@@ -66,6 +71,8 @@ class AudioManager {
 
   // Preload all audio assets at startup
   async preloadAudioAssets() {
+    this.missingAudioFiles = [];
+
     const assets = [
       { name: "jump", path: "assets/audio/jump-jai-shri-ram.mp3" },
       { name: "collect", path: "assets/audio/collect-jai-shri-ram.mp3" },
@@ -87,6 +94,10 @@ class AudioManager {
     } else {
       console.info("[AudioManager] No audio files found. Falling back to tone synthesis.");
       this.useAudioFiles = false;
+    }
+
+    if (this.missingAudioFiles.length > 0) {
+      console.info(`[AudioManager] Optional audio files missing (${this.missingAudioFiles.length}/${assets.length}).`);
     }
   }
 
@@ -125,27 +136,142 @@ class AudioManager {
   }
 
   speakChant(text) {
+    return this.speakText(text, {
+      rate: 1.0,
+      pitch: 1.0,
+      volumeScale: 2.8
+    });
+  }
+
+  _createSpeechUtterance(synth, text, options = {}) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = options.rate ?? 1.0;
+    utterance.pitch = options.pitch ?? 1.0;
+    const volumeScale = options.volumeScale ?? 2.8;
+    utterance.volume = Math.max(0.2, Math.min(1, this.masterVolume * volumeScale));
+
+    const preferredLang = typeof options.lang === "string" && options.lang.length > 0 ? options.lang : "";
+    const fallbackLang = typeof options.fallbackLang === "string" && options.fallbackLang.length > 0
+      ? options.fallbackLang
+      : "";
+
+    const pickVoice = (langCode) => {
+      if (!langCode) {
+        return null;
+      }
+      const voices = synth.getVoices?.() || [];
+      if (!voices.length) {
+        return null;
+      }
+      const normalized = langCode.toLowerCase();
+      const exact = voices.find((v) => (v.lang || "").toLowerCase() === normalized);
+      if (exact) {
+        return exact;
+      }
+      return voices.find((v) => (v.lang || "").toLowerCase().startsWith(normalized.split("-")[0]));
+    };
+
+    const preferredVoice = pickVoice(preferredLang);
+    const fallbackVoice = preferredVoice ? null : pickVoice(fallbackLang);
+    const selectedVoice = preferredVoice || fallbackVoice;
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+      utterance.lang = selectedVoice.lang;
+    } else if (preferredLang) {
+      utterance.lang = preferredLang;
+    } else if (fallbackLang) {
+      utterance.lang = fallbackLang;
+    }
+
+    return utterance;
+  }
+
+  hasVoiceForLang(langCode) {
+    const synth = window.speechSynthesis;
+    if (!synth || typeof SpeechSynthesisUtterance === "undefined") {
+      return false;
+    }
+
+    const voices = synth.getVoices?.() || [];
+    if (!voices.length || !langCode) {
+      return false;
+    }
+
+    const normalized = String(langCode).toLowerCase();
+    return voices.some((voice) => {
+      const voiceLang = String(voice.lang || "").toLowerCase();
+      return voiceLang === normalized || voiceLang.startsWith(normalized.split("-")[0]);
+    });
+  }
+
+  speakText(text, options = {}) {
     const synth = window.speechSynthesis;
     if (!synth || typeof SpeechSynthesisUtterance === "undefined") {
       return false;
     }
 
     const now = Date.now();
-    if (now - this.lastChantAt < this.minChantGapMs) {
+    const minGapMs = Number.isFinite(options.minGapMs) ? options.minGapMs : this.minChantGapMs;
+    if (!options.force && now - this.lastChantAt < minGapMs) {
       return true;
     }
     this.lastChantAt = now;
 
     try {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.volume = Math.max(0.2, Math.min(1, this.masterVolume * 2.8));
-      synth.cancel();
+      const utterance = this._createSpeechUtterance(synth, text, options);
+
+      if (options.cancelPrevious !== false) {
+        synth.cancel();
+      }
       synth.speak(utterance);
       return true;
     } catch (_error) {
       return false;
+    }
+  }
+
+  speakTextAndWait(text, options = {}) {
+    const synth = window.speechSynthesis;
+    if (!synth || typeof SpeechSynthesisUtterance === "undefined") {
+      return Promise.resolve(0);
+    }
+
+    const now = Date.now();
+    const minGapMs = Number.isFinite(options.minGapMs) ? options.minGapMs : this.minChantGapMs;
+    if (!options.force && now - this.lastChantAt < minGapMs) {
+      return Promise.resolve(0);
+    }
+    this.lastChantAt = now;
+
+    const estimatedMs = Number.isFinite(options.estimatedDurationMs)
+      ? options.estimatedDurationMs
+      : Math.min(14000, Math.max(1800, String(text).length * 95));
+
+    try {
+      const utterance = this._createSpeechUtterance(synth, text, options);
+      return new Promise((resolve) => {
+        const startedAt = Date.now();
+        let settled = false;
+        const finish = () => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          window.clearTimeout(fallbackTimer);
+          resolve(Math.max(0, Date.now() - startedAt));
+        };
+
+        utterance.onend = finish;
+        utterance.onerror = finish;
+        const fallbackTimer = window.setTimeout(finish, estimatedMs + 2000);
+        if (options.cancelPrevious !== false) {
+          synth.cancel();
+        }
+        synth.speak(utterance);
+      });
+    } catch (_error) {
+      return Promise.resolve(0);
     }
   }
 

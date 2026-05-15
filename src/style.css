@@ -73,14 +73,23 @@ canvas {
   box-shadow: inset 0 1px 0 rgba(255, 222, 140, 0.10);
 }
 
+
 .tutorial-overlay {
   position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
+  left: auto;
+  bottom: 24px;
+  top: auto;
+  right: 24px;
+  width: 170px;
+  max-width: 45vw;
+  min-width: 150px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
   background: rgba(5, 8, 18, 0.76);
   z-index: 35;
-  padding: 20px;
+  padding: 0;
+  pointer-events: none;
 }
 
 .tutorial-overlay[hidden] {
@@ -88,64 +97,69 @@ canvas {
 }
 
 .tutorial-card {
-  width: min(720px, calc(100% - 24px));
+  width: 100%;
   margin: 0;
-  padding: 26px 28px;
-  border-radius: 18px;
+  padding: 7px 8px;
+  border-radius: 10px;
   background:
     linear-gradient(160deg, rgba(36, 20, 10, 0.98), rgba(10, 14, 32, 0.98));
   box-shadow:
-    0 0 72px rgba(255, 153, 51, 0.24),
-    0 24px 70px rgba(0, 0, 0, 0.72),
-    inset 0 1px 0 rgba(255, 220, 140, 0.14);
-  border: 1px solid rgba(255, 196, 90, 0.42);
+    0 0 12px rgba(255, 153, 51, 0.18),
+    0 4px 12px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 220, 140, 0.10);
+  border: 1px solid rgba(255, 196, 90, 0.32);
+  pointer-events: auto;
 }
 
 .tutorial-title {
   color: #ffd36d;
-  font-size: 30px;
+  font-size: 16px;
   font-family: 'Georgia', 'Times New Roman', serif;
   font-weight: 700;
   letter-spacing: 0.02em;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .tutorial-body {
   color: #eef2ff;
-  font-size: 18px;
-  line-height: 1.45;
+  font-size: 11px;
+  line-height: 1.28;
 }
 
 .tutorial-progress {
-  margin-top: 8px;
+  margin-top: 5px;
   color: #8ea4ff;
-  font-size: 12px;
-  letter-spacing: 0.06em;
+  font-size: 9px;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
 
 .tutorial-controls {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 18px;
-  margin-bottom: 18px;
+  gap: 6px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .tutorial-key {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 82px;
-  padding: 10px 14px;
+  min-width: 58px;
+  max-width: 140px;
+  padding: 6px 8px;
   border-radius: 999px;
   border: 1px solid rgba(148, 170, 255, 0.34);
   background: rgba(13, 18, 44, 0.96);
   color: #dbe4ff;
-  font-size: 13px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  text-transform: none;
+  text-align: center;
+  white-space: normal;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
@@ -158,13 +172,13 @@ canvas {
 }
 
 .tutorial-action {
-  margin-top: 4px;
+  margin-top: 2px;
   background: #f09a2a;
   color: #111;
   border: 0;
-  border-radius: 10px;
-  padding: 10px 16px;
-  font-size: 14px;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 11px;
 }
 
 @keyframes tutorialKeyPulse {

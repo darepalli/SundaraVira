@@ -192,9 +192,12 @@ class Hud {
       window.location.reload();
     };
 
+
     this.tutorialOverlay = document.createElement("div");
     this.tutorialOverlay.className = "tutorial-overlay";
     this.tutorialOverlay.hidden = true;
+    this.tutorialOverlay.style.transition = "left 0.3s, top 0.3s, transform 0.3s";
+
 
     this.tutorialCard = document.createElement("div");
     this.tutorialCard.className = "tutorial-card";
@@ -226,6 +229,22 @@ class Hud {
       this.tutorialControlNodes[key] = chip;
       this.tutorialControls.append(chip);
     });
+    this.tutorialControlLabels = {
+      move: "Arrows",
+      jump: "Jump",
+      size: "Size",
+      chant: "Chant",
+      attack: "Attack",
+      blast: "Blast"
+    };
+    this.tutorialControlCompactLabels = {
+      move: "Move",
+      jump: "Jump",
+      size: "Size",
+      chant: "Chant",
+      attack: "Atk",
+      blast: "Blast"
+    };
 
     this.tutorialActionButton = document.createElement("button");
     this.tutorialActionButton.type = "button";
@@ -449,8 +468,19 @@ class Hud {
       progress = "",
       activeControls = [],
       actionText = "Skip tutorial",
-      onAction = null
+      onAction = null,
+      followHanuman = false,
+      hanumanPosition = null,
+      controlLabels = null,
+      compactControlLabels = null
     } = options;
+
+    if (controlLabels && typeof controlLabels === "object") {
+      this.tutorialControlLabels = { ...this.tutorialControlLabels, ...controlLabels };
+    }
+    if (compactControlLabels && typeof compactControlLabels === "object") {
+      this.tutorialControlCompactLabels = { ...this.tutorialControlCompactLabels, ...compactControlLabels };
+    }
 
     this.tutorialTitle.textContent = title;
     this.tutorialBody.textContent = body;
@@ -460,8 +490,19 @@ class Hud {
     this.tutorialActionHandler = typeof onAction === "function" ? onAction : null;
 
     Object.entries(this.tutorialControlNodes).forEach(([key, node]) => {
+      const isActive = activeControls.includes(key);
+      node.textContent = isActive
+        ? (this.tutorialControlLabels[key] || node.textContent)
+        : (this.tutorialControlCompactLabels[key] || this.tutorialControlLabels[key] || node.textContent);
       node.classList.toggle("active", activeControls.includes(key));
     });
+
+    // Keep tutorial card anchored away from main gameplay action.
+    this.tutorialOverlay.style.left = "auto";
+    this.tutorialOverlay.style.bottom = "24px";
+    this.tutorialOverlay.style.top = "auto";
+    this.tutorialOverlay.style.right = "24px";
+    this.tutorialOverlay.style.transform = "none";
 
     this.tutorialOverlay.hidden = false;
   }
@@ -491,6 +532,20 @@ class Hud {
     if (options.activeControls !== undefined) {
       Object.entries(this.tutorialControlNodes).forEach(([key, node]) => {
         node.classList.toggle("active", options.activeControls.includes(key));
+      });
+    }
+    if (options.controlLabels !== undefined && options.controlLabels) {
+      this.tutorialControlLabels = { ...this.tutorialControlLabels, ...options.controlLabels };
+    }
+    if (options.compactControlLabels !== undefined && options.compactControlLabels) {
+      this.tutorialControlCompactLabels = { ...this.tutorialControlCompactLabels, ...options.compactControlLabels };
+    }
+    if (options.activeControls !== undefined) {
+      Object.entries(this.tutorialControlNodes).forEach(([key, node]) => {
+        const isActive = options.activeControls.includes(key);
+        node.textContent = isActive
+          ? (this.tutorialControlLabels[key] || node.textContent)
+          : (this.tutorialControlCompactLabels[key] || this.tutorialControlLabels[key] || node.textContent);
       });
     }
   }

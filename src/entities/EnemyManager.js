@@ -5,10 +5,26 @@ class EnemyManager {
     this.paused = false;
   }
 
+  isUsableGroup(group) {
+    return Boolean(group && group.scene === this.scene && group.children && typeof group.clear === "function");
+  }
+
+  ensureGroup() {
+    if (this.isUsableGroup(this.group)) {
+      return;
+    }
+
+    this.group = this.scene.physics.add.group();
+  }
+
   rebuild(enemyPoints) {
+    this.ensureGroup();
+
     this.group.clear(true, true);
 
-    enemyPoints.forEach(([x, y], index) => {
+    const safeEnemyPoints = Array.isArray(enemyPoints) ? enemyPoints : [];
+
+    safeEnemyPoints.forEach(([x, y], index) => {
       const enemy = this.group.create(x, y, "enemy");
       enemy.setCollideWorldBounds(true);
       enemy.setBounce(1, 0);
@@ -53,6 +69,13 @@ class EnemyManager {
       }
     });
     return destroyed;
+  }
+
+  destroy() {
+    if (this.isUsableGroup(this.group)) {
+      this.group.clear(true, true);
+    }
+    this.group = null;
   }
 }
 

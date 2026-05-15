@@ -51,9 +51,142 @@ const STAGE_I18N = {
   }
 };
 
+const TUTORIAL_I18N = {
+  en: {
+    title: "Tutorial Demo",
+    progressLabel: "Step {step} / 6",
+    startBody: "Stage 1 will autoplay while the controls guide the full play loop.",
+    autoChantText: "jai shri ram",
+    skipAction: "Skip demo",
+    finishBody: "Stage 1 is complete. Return to the menu to start a normal run.",
+    finishAction: "Back to menu",
+    stepBodies: [
+      "Move toward the demon to close the distance.",
+      "The demon is near. Use an attack to finish it.",
+      "Resize into a smaller form to make the jump easier.",
+      "Jump up to the ledge.",
+      "Claim the fragments on the way forward.",
+      "Move near the beacon and offer a chant to finish the stage."
+    ],
+    speechBodies: [
+      "Move toward the demon to close the distance.",
+      "The demon is near. Use an attack to finish it.",
+      "Resize into a smaller form to make the jump easier.",
+      "Jump up to the ledge.",
+      "Claim the fragments on the way forward.",
+      "Move near the beacon and offer a chant to finish the stage."
+    ],
+    compactControlLabels: {
+      move: "Move",
+      jump: "Jump",
+      size: "Size",
+      chant: "Chant",
+      attack: "Atk",
+      blast: "Blast"
+    },
+    controlLabels: {
+      move: "Move: Arrows / drag / touch-drag",
+      jump: "Jump: Up or Space / double-click / tap above",
+      size: "Size: PgUp/PgDn / wheel / swipe up-down",
+      chant: "Chant: voice near beacon",
+      attack: "Attack: Ctrl / right-click / tap",
+      blast: "Blast: Alt / middle-click / 2-finger tap"
+    }
+  },
+  hi: {
+    title: "ट्यूटोरियल डेमो",
+    progressLabel: "चरण {step} / 6",
+    startBody: "नीचे के संकेत पूरे खेल-चक्र को दिखाते हुए स्टेज 1 को अपने-आप चलाएंगे।",
+    autoChantText: "जय श्री राम",
+    skipAction: "डेमो छोड़ें",
+    finishBody: "स्टेज 1 पूरा हो गया है। सामान्य खेल शुरू करने के लिए मेनू पर लौटें।",
+    finishAction: "मेनू पर जाएं",
+    stepBodies: [
+      "दुश्मन तक पहुंचने के लिए आगे बढ़ें।",
+      "दुश्मन पास है। अब हमला करके उसे हराएं।",
+      "कूद आसान करने के लिए छोटे रूप में बदलें।",
+      "अब ऊपर वाले किनारे तक कूदें।",
+      "आगे बढ़ते हुए फ्रैगमेंट्स उठाएं।",
+      "बीकन के पास जाकर पूरा करने के लिए मंत्र अर्पित करें।"
+    ],
+    speechBodies: [
+      "दुश्मन तक पहुंचने के लिए आगे बढ़ें।",
+      "दुश्मन पास है। अब हमला करके उसे हराएं।",
+      "कूद आसान करने के लिए छोटे रूप में बदलें।",
+      "अब ऊपर वाले किनारे तक कूदें।",
+      "आगे बढ़ते हुए फ्रैगमेंट्स उठाएं।",
+      "बीकन के पास जाकर पूरा करने के लिए मंत्र अर्पित करें।"
+    ],
+    compactControlLabels: {
+      move: "चलें",
+      jump: "कूद",
+      size: "आकार",
+      chant: "जप",
+      attack: "हमला",
+      blast: "ब्लास्ट"
+    },
+    controlLabels: {
+      move: "चलें: एरो / ड्रैग / टच-ड्रैग",
+      jump: "कूद: Up या Space / डबल-क्लिक / ऊपर टैप",
+      size: "आकार: PgUp/PgDn / wheel / ऊपर-नीचे स्वाइप",
+      chant: "जप: बीकन के पास आवाज से",
+      attack: "हमला: Ctrl / राइट-क्लिक / टैप",
+      blast: "ब्लास्ट: Alt / मिडिल-क्लिक / 2-फिंगर टैप"
+    }
+  },
+  te: {
+    title: "ట్యుటోరియల్ డెమో",
+    progressLabel: "దశ {step} / 6",
+    startBody: "కిందనున్న సూచనలు పూర్తి గేమ్ లూప్‌ను చూపుతూ స్టేజ్ 1 ఆటోప్లే అవుతుంది.",
+    autoChantText: "జై శ్రీరామ్",
+    skipAction: "డెమో దాటవేయి",
+    finishBody: "స్టేజ్ 1 పూర్తైంది. సాధారణ ఆట కోసం మెనూకి తిరిగి వెళ్లండి.",
+    finishAction: "మెనూకి తిరుగు",
+    stepBodies: [
+      "దెయ్యం దగ్గరకు చేరేందుకు ముందుకు కదలండి.",
+      "దెయ్యం దగ్గరికి వచ్చింది. ఇప్పుడు అటాక్ చేసి దాన్ని ముగించండి.",
+      "జంప్ సులభం కావడానికి చిన్న రూపంలోకి మారండి.",
+      "ఇప్పుడు పైకి ఉన్న అంచుకు దూకండి.",
+      "ముందుకు సాగుతూ ఫ్రాగ్మెంట్లను తీసుకోండి.",
+      "బీకన్ దగ్గరకు వెళ్లి పూర్తి చేయడానికి జపం సమర్పించండి."
+    ],
+    speechBodies: [
+      "దెయ్యం దగ్గరకు చేరేందుకు ముందుకు కదలండి.",
+      "దెయ్యం దగ్గరికి వచ్చింది. ఇప్పుడు అటాక్ చేసి దాన్ని ముగించండి.",
+      "జంప్ సులభం కావడానికి చిన్న రూపంలోకి మారండి.",
+      "ఇప్పుడు పైకి ఉన్న అంచుకు దూకండి.",
+      "ముందుకు సాగుతూ ఫ్రాగ్మెంట్లను తీసుకోండి.",
+      "బీకన్ దగ్గరకు వెళ్లి పూర్తి చేయడానికి జపం సమర్పించండి."
+    ],
+    compactControlLabels: {
+      move: "కదలిక",
+      jump: "జంప్",
+      size: "పరిమాణం",
+      chant: "జపం",
+      attack: "దాడి",
+      blast: "బ్లాస్ట్"
+    },
+    controlLabels: {
+      move: "కదలిక: Arrows / drag / touch-drag",
+      jump: "జంప్: Up లేదా Space / double-click / పై ట్యాప్",
+      size: "పరిమాణం: PgUp/PgDn / wheel / పై-క్రింద swipe",
+      chant: "జపం: బీకన్ దగ్గర వాయిస్‌తో",
+      attack: "దాడి: Ctrl / right-click / ట్యాప్",
+      blast: "బ్లాస్ట్: Alt / middle-click / 2-finger tap"
+    }
+  }
+};
+
 function isTransitionDebugEnabled() {
   const fromWindow = Boolean(window.__SV_DEBUG_TRANSITIONS__);
   const fromQuery = new URLSearchParams(window.location.search).get("debug") === "1";
+  return fromWindow || fromQuery;
+}
+
+function isTutorialDebugEnabled() {
+  const params = new URLSearchParams(window.location.search);
+  const fromWindow = Boolean(window.__SV_DEBUG_TUTORIAL__);
+  const fromQuery = params.get("tdebug") === "1" || params.get("debug") === "1";
   return fromWindow || fromQuery;
 }
 
@@ -101,6 +234,7 @@ class StageScene extends Phaser.Scene {
     this.debugText = null;
     this.debugLastGoalResult = "-";
     this.debugTransitionsEnabled = false;
+    this.tutorialDebugEnabled = false;
     this.stageTransitionCard = null;
     this.backgroundLayer = null;
     this.objectiveSystem = null;
@@ -137,6 +271,10 @@ class StageScene extends Phaser.Scene {
     this.isTutorialMode = false;
     this.tutorialTimers = [];
     this.tutorialSequenceActive = false;
+    this.tutorialAdvanceHandler = null;
+    this.tutorialCompleteHandler = null;
+    this.tutorialExitFallbackTimeoutId = null;
+    this.tutorialExitInProgress = false;
     this.lastFragmentCollectedAt = -100000;
     this.state = {
       health: 100,
@@ -150,11 +288,19 @@ class StageScene extends Phaser.Scene {
 
   init(data) {
     this.debugTransitionsEnabled = isTransitionDebugEnabled();
+    this.tutorialDebugEnabled = isTutorialDebugEnabled();
     const savedLanguage = window.localStorage.getItem("sv.uiLanguage") || "en";
     this.uiLanguage = ["en", "hi", "te"].includes(data?.uiLanguage) ? data.uiLanguage : savedLanguage;
     this.isTutorialMode = Boolean(data?.tutorial);
     this.tutorialTimers = [];
     this.tutorialSequenceActive = false;
+    this.tutorialAdvanceHandler = null;
+    this.tutorialCompleteHandler = null;
+    this.tutorialExitInProgress = false;
+    if (this.tutorialExitFallbackTimeoutId) {
+      window.clearTimeout(this.tutorialExitFallbackTimeoutId);
+      this.tutorialExitFallbackTimeoutId = null;
+    }
     this.stageIndex = Number(data?.stageIndex ?? 0);
     this.stageData = window.StageLoader.getStageData(this.game, this.stageIndex);
     if (!this.stageData) {
@@ -192,9 +338,22 @@ class StageScene extends Phaser.Scene {
 
     this.targetFragments = this.stageData?.targetFragments || 0;
     this.debugLastGoalResult = "init";
+
+    if (this.tutorialDebugEnabled) {
+      window.__SV_TUTORIAL_DEBUG_LOGS = [];
+      this.pushTutorialDebug("init", {
+        tutorial: this.isTutorialMode,
+        stageIndex: this.stageIndex,
+        stageId: this.stageData?.id || "none"
+      });
+    }
   }
 
   preload() {
+    this.ensureGeneratedTextures();
+  }
+
+  ensureGeneratedTextures() {
     const g = this.make.graphics({ x: 0, y: 0, add: false });
     this.generateHanumanTexture(g);
     this.generateFragmentTexture(g);
@@ -207,7 +366,86 @@ class StageScene extends Phaser.Scene {
     return langMap[key] || STAGE_I18N.en[key] || key;
   }
 
+  getTutorialSpeechLang() {
+    if (this.uiLanguage === "hi") {
+      return "hi-IN";
+    }
+    if (this.uiLanguage === "te") {
+      return "te-IN";
+    }
+    return "en-IN";
+  }
+
+  speakTutorialHelp(text) {
+    if (!text) {
+      return Promise.resolve(0);
+    }
+
+    const estimateMs = Math.min(14000, Math.max(1800, String(text).length * 95));
+    const options = {
+      lang: this.getTutorialSpeechLang(),
+      fallbackLang: "en-IN",
+      rate: 0.98,
+      pitch: 1.0,
+      volumeScale: 2.6,
+      force: true,
+      cancelPrevious: true
+    };
+
+    if (typeof window.audioManager?.speakTextAndWait === "function") {
+      return window.audioManager.speakTextAndWait(text, options)
+        .then((actualMs) => Math.max(estimateMs, Number(actualMs || 0)));
+    }
+
+    window.audioManager?.speakText?.(text, options);
+    return Promise.resolve(estimateMs);
+  }
+
+  getTutorialSpeechText(tutorialCopy, stepIndex, bodyText) {
+    const speechLang = this.getTutorialSpeechLang();
+    const englishSpeechBodies = TUTORIAL_I18N.en.speechBodies || TUTORIAL_I18N.en.stepBodies || [];
+    const localizedSpeechBodies = tutorialCopy.speechBodies || tutorialCopy.stepBodies || [];
+    const hasTargetVoice = Boolean(window.audioManager?.hasVoiceForLang?.(speechLang));
+
+    if (!hasTargetVoice && this.uiLanguage !== "en") {
+      return englishSpeechBodies[stepIndex] || TUTORIAL_I18N.en.stepBodies?.[stepIndex] || bodyText;
+    }
+
+    return localizedSpeechBodies[stepIndex] || bodyText;
+  }
+
+  pushTutorialDebug(event, details = {}) {
+    if (!this.tutorialDebugEnabled) {
+      return;
+    }
+
+    const entry = {
+      at: Date.now(),
+      event,
+      tutorial: this.isTutorialMode,
+      seq: this.tutorialSequenceActive,
+      stageActive: this.scene?.isActive("StageScene") || false,
+      menuActive: this.scene?.isActive("MenuScene") || false,
+      ...details
+    };
+
+    if (!Array.isArray(window.__SV_TUTORIAL_DEBUG_LOGS)) {
+      window.__SV_TUTORIAL_DEBUG_LOGS = [];
+    }
+
+    window.__SV_TUTORIAL_DEBUG_LOGS.push(entry);
+    if (window.__SV_TUTORIAL_DEBUG_LOGS.length > 220) {
+      window.__SV_TUTORIAL_DEBUG_LOGS.splice(0, window.__SV_TUTORIAL_DEBUG_LOGS.length - 220);
+    }
+
+    console.info("[SV tutorial-debug]", entry);
+  }
+
   generateFragmentTexture(g) {
+    if (this.textures.exists("fragment")) {
+      this.textures.remove("fragment");
+    }
+
     // Divine gem — golden diamond with inner glow layers
     g.clear();
     // Outer glow aura
@@ -239,6 +477,10 @@ class StageScene extends Phaser.Scene {
   }
 
   generateEnemyTexture(g) {
+    if (this.textures.exists("enemy")) {
+      this.textures.remove("enemy");
+    }
+
     // Rakshasa demon — hunched dark warrior
     g.clear();
     // Body (dark maroon, slightly wider than tall)
@@ -276,6 +518,8 @@ class StageScene extends Phaser.Scene {
   }
 
   create() {
+    this.ensureGeneratedTextures();
+
     window.audioManager?.unlock();
 
     // Re-initialise gyro each time the scene starts (page reload resets all state).
@@ -325,19 +569,28 @@ class StageScene extends Phaser.Scene {
       this.showTouchTutorialIfNeeded();
     }
     document.body.classList.remove("touch-active");
-    if (this.debugTransitionsEnabled) {
+    if (this.debugTransitionsEnabled || this.tutorialDebugEnabled) {
       this.createDebugOverlay();
       this.updateDebugOverlay();
     }
     this.hud.hideEndgame();
     this.setEnemyPauseForTyping(this.isTypingChant);
+    this.pushTutorialDebug("create-ready", { tutorial: this.isTutorialMode });
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.pushTutorialDebug("shutdown");
       if (this.transitionFallbackTimeoutId) {
         window.clearTimeout(this.transitionFallbackTimeoutId);
         this.transitionFallbackTimeoutId = null;
       }
+      if (this.tutorialExitFallbackTimeoutId) {
+        window.clearTimeout(this.tutorialExitFallbackTimeoutId);
+        this.tutorialExitFallbackTimeoutId = null;
+      }
       this.clearTutorialTimers();
+      this.clearTutorialInputHandlers();
+      this.enemyManager?.destroy?.();
+      this.enemyManager = null;
       this.hud?.destroy();
       this.gyroInput?.destroy();
       this.gyroInput = null;
@@ -362,7 +615,7 @@ class StageScene extends Phaser.Scene {
   }
 
   update() {
-    if (this.debugTransitionsEnabled) {
+    if (this.debugTransitionsEnabled || this.tutorialDebugEnabled) {
       this.updateDebugOverlay();
     }
 
@@ -812,7 +1065,8 @@ class StageScene extends Phaser.Scene {
     this.playerLabel = this.playerActor.label;
 
     this.fragments = this.physics.add.group();
-    this.stageData.fragments.forEach(([x, y]) => {
+    const fragmentPoints = Array.isArray(this.stageData?.fragments) ? this.stageData.fragments : [];
+    fragmentPoints.forEach(([x, y]) => {
       const orb = this.fragments.create(x, y, "fragment");
       orb.body.setAllowGravity(false);
       this.tweens.add({
@@ -825,8 +1079,10 @@ class StageScene extends Phaser.Scene {
       });
     });
 
-    this.enemyManager = this.enemyManager || new window.EnemyManager(this);
-    this.enemyManager.rebuild(this.stageData.enemies);
+    // Recreate manager every scene create to avoid stale Phaser group state.
+    this.enemyManager?.destroy?.();
+    this.enemyManager = new window.EnemyManager(this);
+    this.enemyManager.rebuild(this.stageData?.enemies);
     this.enemies = this.enemyManager.group;
   }
 
@@ -881,6 +1137,13 @@ class StageScene extends Phaser.Scene {
       hasChantOffer: this.state.beaconChantOffered,
       hasNextStage: window.StageLoader.hasNextStage(this.stageIndex),
       dharma: this.state.dharma
+    });
+
+    this.pushTutorialDebug("goal-touch", {
+      result: result.type,
+      fragments: this.state.fragments,
+      target: this.targetFragments,
+      offered: this.state.beaconChantOffered
     });
 
     if (result.type === "next-stage") {
@@ -1031,7 +1294,9 @@ class StageScene extends Phaser.Scene {
     this.fragments?.clear(true, true);
     this.fragments = null;
 
-    this.enemyManager?.group?.clear(true, true);
+    if (this.enemyManager?.group?.children) {
+      this.enemyManager.group.clear(true, true);
+    }
     this.enemies = null;
 
     this.platforms?.clear(true, true);
@@ -1188,6 +1453,8 @@ class StageScene extends Phaser.Scene {
     const stageId = this.stageData?.id || "none";
     const transitionCard = this.stageTransitionCard ? "shown" : "hidden";
     const currentSceneKey = this.scene.key || "unknown";
+    const tutorialState = this.isTutorialMode ? "on" : "off";
+    const activeScenes = window.game?.scene?.getScenes(true)?.map((sceneObj) => sceneObj.scene.key).join(",") || "none";
     const debugLine = [
       `DBG scene=${currentSceneKey}`,
       `stageIndex=${this.stageIndex}`,
@@ -1195,13 +1462,22 @@ class StageScene extends Phaser.Scene {
       `goal=${this.debugLastGoalResult}`,
       `transitioning=${this.isStageTransitioning}`,
       `goalResolved=${this.goalResolved}`,
-      `card=${transitionCard}`
+      `card=${transitionCard}`,
+      `tutorial=${tutorialState}`,
+      `tSeq=${this.tutorialSequenceActive}`,
+      `tAdv=${Boolean(this.tutorialAdvanceHandler)}`,
+      `tDone=${Boolean(this.tutorialCompleteHandler)}`,
+      `active=${activeScenes}`
     ].join(" | ");
 
     this.debugText.setText(debugLine);
   }
 
   generateHanumanTexture(g) {
+    if (this.textures.exists("hanuman")) {
+      this.textures.remove("hanuman");
+    }
+
     // Hanuman: 64 × 80 px — heroic monkey-god warrior
     g.clear();
 
@@ -1506,6 +1782,63 @@ class StageScene extends Phaser.Scene {
     this.tutorialTimers = [];
   }
 
+  clearTutorialInputHandlers() {
+    this.pushTutorialDebug("clear-input-handlers", {
+      hadAdvance: Boolean(this.tutorialAdvanceHandler),
+      hadComplete: Boolean(this.tutorialCompleteHandler)
+    });
+
+    if (this.tutorialAdvanceHandler) {
+      window.removeEventListener("keydown", this.tutorialAdvanceHandler);
+      window.removeEventListener("mousedown", this.tutorialAdvanceHandler);
+      window.removeEventListener("touchstart", this.tutorialAdvanceHandler);
+      window.removeEventListener("pointerdown", this.tutorialAdvanceHandler);
+      window.removeEventListener("click", this.tutorialAdvanceHandler);
+      window.removeEventListener("touchend", this.tutorialAdvanceHandler);
+      this.tutorialAdvanceHandler = null;
+    }
+
+    if (this.tutorialCompleteHandler) {
+      window.removeEventListener("keydown", this.tutorialCompleteHandler);
+      window.removeEventListener("mousedown", this.tutorialCompleteHandler);
+      window.removeEventListener("touchstart", this.tutorialCompleteHandler);
+      window.removeEventListener("pointerdown", this.tutorialCompleteHandler);
+      window.removeEventListener("click", this.tutorialCompleteHandler);
+      window.removeEventListener("touchend", this.tutorialCompleteHandler);
+      this.tutorialCompleteHandler = null;
+    }
+  }
+
+  queueTutorialAdvance(onAdvance) {
+    this.clearTutorialInputHandlers();
+    this.pushTutorialDebug("queue-advance");
+
+    const advance = () => {
+      this.pushTutorialDebug("advance-fired");
+      this.clearTutorialInputHandlers();
+      if (typeof onAdvance === "function") {
+        onAdvance();
+      }
+    };
+
+    this.tutorialAdvanceHandler = advance;
+    window.addEventListener("keydown", advance, { once: true });
+    window.addEventListener("mousedown", advance, { once: true });
+    window.addEventListener("touchstart", advance, { once: true });
+    window.addEventListener("pointerdown", advance, { once: true });
+    window.addEventListener("click", advance, { once: true });
+    window.addEventListener("touchend", advance, { once: true });
+  }
+
+  restoreTutorialSceneState() {
+    this.clearTutorialInputHandlers();
+    this.physics.resume();
+    if (this.input?.keyboard) {
+      this.input.keyboard.enabled = true;
+      this.input.keyboard.addCapture(this.capturedKeyCodes);
+    }
+  }
+
   movePlayerToTutorialTarget(x, y, duration, onComplete) {
     if (!this.playerActor?.sprite) {
       if (typeof onComplete === "function") {
@@ -1533,15 +1866,34 @@ class StageScene extends Phaser.Scene {
   }
 
   abortTutorialDemo() {
-    if (!this.isTutorialMode) {
+    if (this.tutorialExitInProgress) {
+      this.pushTutorialDebug("abort-ignored-exit-in-progress");
       return;
     }
+    this.tutorialExitInProgress = true;
+    this.pushTutorialDebug("abort-start");
 
+    if (this.tutorialExitFallbackTimeoutId) {
+      window.clearTimeout(this.tutorialExitFallbackTimeoutId);
+      this.tutorialExitFallbackTimeoutId = null;
+    }
+    try {
+      this.restoreTutorialSceneState();
+    } catch (_error) {
+      // Continue to menu even if scene systems are already tearing down.
+    }
     this.isTutorialMode = false;
     this.tutorialSequenceActive = false;
     this.clearTutorialTimers();
     this.hud?.hideTutorialOverlay();
-    this.scene.start("MenuScene");
+
+    // Reload the page to return to the menu. This avoids Phaser scale/input
+    // state corruption that occurs when the HUD DOM element is removed and
+    // the canvas bounds are no longer valid for pointer event translation.
+    this.pushTutorialDebug("abort-transition", { mode: "reload" });
+    window.setTimeout(() => {
+      window.location.reload();
+    }, 0);
   }
 
   finishTutorialDemo() {
@@ -1549,22 +1901,46 @@ class StageScene extends Phaser.Scene {
       return;
     }
 
+    const tutorialCopy = TUTORIAL_I18N[this.uiLanguage] || TUTORIAL_I18N.en;
+
     this.tutorialSequenceActive = false;
+    this.pushTutorialDebug("finish-start");
     this.clearTutorialTimers();
+    this.clearTutorialInputHandlers();
     this.hud?.showTutorialOverlay({
-      title: "Tutorial complete",
-      body: "Stage 1 has been autoplayed. Use the menu button to replay the guided demo or begin normally.",
-      progress: "Tutorial finished",
+      title: tutorialCopy.title,
+      body: tutorialCopy.finishBody,
+      progress: tutorialCopy.progressLabel.replace("{step}", "6"),
       activeControls: ["move", "jump", "size", "chant", "attack", "blast"],
-      actionText: "Back to menu",
+      actionText: tutorialCopy.finishAction,
+      controlLabels: tutorialCopy.controlLabels,
       onAction: () => this.abortTutorialDemo()
     });
+
+    this.tutorialCompleteHandler = () => {
+      this.pushTutorialDebug("complete-handler-fired");
+      this.abortTutorialDemo();
+    };
+    window.addEventListener("keydown", this.tutorialCompleteHandler, { once: true });
+    window.addEventListener("mousedown", this.tutorialCompleteHandler, { once: true });
+    window.addEventListener("touchstart", this.tutorialCompleteHandler, { once: true });
+    window.addEventListener("pointerdown", this.tutorialCompleteHandler, { once: true });
+    window.addEventListener("click", this.tutorialCompleteHandler, { once: true });
+    window.addEventListener("touchend", this.tutorialCompleteHandler, { once: true });
 
     this.tutorialTimers.push(this.time.delayedCall(2400, () => {
       if (this.isTutorialMode) {
         this.abortTutorialDemo();
       }
     }));
+
+    // Browser-level fallback: if Phaser timer is throttled, still exit tutorial.
+    this.tutorialExitFallbackTimeoutId = window.setTimeout(() => {
+      if (this.isTutorialMode) {
+        this.pushTutorialDebug("window-fallback-fired");
+        this.abortTutorialDemo();
+      }
+    }, 3200);
   }
 
   startTutorialDemo() {
@@ -1572,119 +1948,192 @@ class StageScene extends Phaser.Scene {
       return;
     }
 
+    const tutorialCopy = TUTORIAL_I18N[this.uiLanguage] || TUTORIAL_I18N.en;
+
     this.tutorialSequenceActive = true;
+    this.pushTutorialDebug("start-demo");
     this.clearTutorialTimers();
+    this.clearTutorialInputHandlers();
     this.physics.pause();
     if (this.input?.keyboard) {
       this.input.keyboard.enabled = false;
     }
 
     const fragmentTargets = Array.isArray(this.stageData.fragments) ? this.stageData.fragments.slice() : [];
+    const enemyTargets = Array.isArray(this.stageData.enemies) ? this.stageData.enemies.slice() : [];
     const fragmentSprites = this.fragments?.getChildren?.().slice() || [];
     const stepDefinitions = [
       {
-        body: "Watch Hanuman move on his own while the arrow controls pulse.",
-        progress: "Step 1 / 6",
+        body: tutorialCopy.stepBodies[0],
+        progress: tutorialCopy.progressLabel.replace("{step}", "1"),
         activeControls: ["move"],
-        moveTo: fragmentTargets[0],
-        collectIndex: 0,
+        moveTo: Array.isArray(enemyTargets[0]) ? [Math.max(40, enemyTargets[0][0] - 60), enemyTargets[0][1]] : [220, 460],
         duration: 900
       },
       {
-        body: "Jumping over ledges uses Up or Space. The demo now climbs to the next platform.",
-        progress: "Step 2 / 6",
-        activeControls: ["jump"],
-        moveTo: fragmentTargets[1],
-        collectIndex: 1,
-        duration: 1000
-      },
-      {
-        body: "Size changes are on Page Up, Page Down, or the mouse wheel.",
-        progress: "Step 3 / 6",
-        activeControls: ["size"],
-        moveTo: fragmentTargets[2],
-        collectIndex: 2,
-        duration: 1000
-      },
-      {
-        body: "Attack and Bhakti Blast are shown here so you can see the full control set.",
-        progress: "Step 4 / 6",
-        activeControls: ["attack", "blast"],
-        moveTo: fragmentTargets[3],
-        collectIndex: 3,
-        duration: 1000
-      },
-      {
-        body: "The last fragment is near the beacon. Chanting unlocks the goal.",
-        progress: "Step 5 / 6",
-        activeControls: ["chant"],
-        moveTo: fragmentTargets[4],
-        collectIndex: 4,
-        duration: 1100,
+        body: tutorialCopy.stepBodies[1],
+        progress: tutorialCopy.progressLabel.replace("{step}", "2"),
+        activeControls: ["attack"],
+        moveTo: Array.isArray(enemyTargets[0]) ? [Math.max(50, enemyTargets[0][0] - 40), enemyTargets[0][1]] : [240, 460],
+        duration: 700,
         afterMove: () => {
-          this.handleChant("jai shri ram");
-          this.handleGoalTouch();
+          if (this.playerActor?.setFacing) {
+            this.playerActor.setFacing(1);
+          }
+          this.triggerMeleeAttack(false);
         }
       },
       {
-        body: "Stage 1 is complete. Return to the menu to start a normal run.",
-        progress: "Step 6 / 6",
-        activeControls: ["move", "jump", "size", "chant", "attack", "blast"],
-        finish: true,
-        duration: 800
+        body: tutorialCopy.stepBodies[2],
+        progress: tutorialCopy.progressLabel.replace("{step}", "3"),
+        activeControls: ["size"],
+        moveTo: [180, 400],
+        duration: 900,
+        afterMove: () => {
+          this.tryApplySizeMode("small");
+        }
+      },
+      {
+        body: tutorialCopy.stepBodies[3],
+        progress: tutorialCopy.progressLabel.replace("{step}", "4"),
+        activeControls: ["jump"],
+        moveTo: [520, 320],
+        duration: 1100
+      },
+      {
+        body: tutorialCopy.stepBodies[4],
+        progress: tutorialCopy.progressLabel.replace("{step}", "5"),
+        activeControls: ["move"],
+        routeTargets: [fragmentTargets[2], fragmentTargets[3], fragmentTargets[4], fragmentTargets[1], fragmentTargets[0]],
+        collectIndices: [2, 3, 4, 1, 0],
+        duration: 950
+      },
+      {
+        body: tutorialCopy.stepBodies[5],
+        progress: tutorialCopy.progressLabel.replace("{step}", "6"),
+        activeControls: ["chant"],
+        moveTo: [this.stageData.goal.x - 80, this.stageData.goal.y],
+        duration: 1000,
+        completeTutorial: true,
+        completeDelayMs: 2000
       }
     ];
 
+
     const runStep = (stepIndex) => {
       if (!this.isTutorialMode) {
+        this.pushTutorialDebug("run-step-skip-not-tutorial", { step: stepIndex });
         return;
       }
 
       const step = stepDefinitions[stepIndex];
       if (!step) {
+        this.pushTutorialDebug("run-step-finish", { step: stepIndex });
         this.finishTutorialDemo();
         return;
       }
 
+      const stepShownAt = Date.now();
+
+      this.pushTutorialDebug("run-step", { step: stepIndex, progress: step.progress });
+
       this.hud.updateTutorialOverlay({
-        title: "Tutorial Demo",
+        title: tutorialCopy.title,
         body: step.body,
         progress: step.progress,
         activeControls: step.activeControls,
-        actionText: stepIndex >= stepDefinitions.length - 1 ? "Back to menu" : "Skip demo",
+        actionText: stepIndex >= stepDefinitions.length - 1 ? tutorialCopy.finishAction : tutorialCopy.skipAction,
+        controlLabels: tutorialCopy.controlLabels,
+        compactControlLabels: tutorialCopy.compactControlLabels,
         onAction: () => this.abortTutorialDemo()
       });
+      const speechBody = this.getTutorialSpeechText(tutorialCopy, stepIndex, step.body);
+      this.speakTutorialHelp(speechBody).then((speechDurationMs) => {
+        if (!this.isTutorialMode || !this.tutorialSequenceActive) {
+          return;
+        }
 
-      if (step.finish) {
-        this.finishTutorialDemo();
-        return;
-      }
+        const target = step.moveTo;
+        const routeTargets = Array.isArray(step.routeTargets) ? step.routeTargets : null;
+        const collectIndices = Array.isArray(step.collectIndices) ? step.collectIndices : null;
+        const isCompletionStep = Boolean(step.completeTutorial);
 
-      const target = step.moveTo;
-      if (Array.isArray(target) && target.length >= 2) {
-        this.movePlayerToTutorialTarget(target[0], target[1], step.duration, () => {
-          if (typeof step.collectIndex === "number") {
-            this.collectFragment(fragmentSprites[step.collectIndex]);
-          }
-
+        const runAfterMove = () => {
           if (typeof step.afterMove === "function") {
+            this.pushTutorialDebug("run-step-after-move", { step: stepIndex });
             step.afterMove();
           }
 
-          this.tutorialTimers.push(this.time.delayedCall(550, () => runStep(stepIndex + 1)));
-        });
-        return;
-      }
+          if (isCompletionStep) {
+            const elapsedMs = Date.now() - stepShownAt;
+            const remainingSpeechMs = Math.max(0, Number(speechDurationMs || 0) - elapsedMs);
+            const finalDelayMs = Math.max(Number(step.completeDelayMs || 0), remainingSpeechMs + 2000);
+            window.setTimeout(() => {
+              if (!this.isTutorialMode || !this.tutorialSequenceActive) {
+                return;
+              }
+              const autoChant = tutorialCopy.autoChantText || "jai shri ram";
+              this.handleChant(autoChant);
+              this.handleGoalTouch();
+            }, finalDelayMs);
+            return;
+          }
 
-      this.tutorialTimers.push(this.time.delayedCall(step.duration || 800, () => runStep(stepIndex + 1)));
+          if (!this.isTutorialMode || !this.tutorialSequenceActive) {
+            this.pushTutorialDebug("run-step-stop-after-move", { step: stepIndex });
+            return;
+          }
+
+          this.queueTutorialAdvance(() => runStep(stepIndex + 1));
+        };
+
+        const runRoute = (index = 0) => {
+          if (!routeTargets || index >= routeTargets.length) {
+            runAfterMove();
+            return;
+          }
+
+          const point = routeTargets[index];
+          if (!Array.isArray(point) || point.length < 2) {
+            runRoute(index + 1);
+            return;
+          }
+
+          this.movePlayerToTutorialTarget(point[0], point[1], step.duration, () => {
+            if (collectIndices && typeof collectIndices[index] === "number") {
+              this.collectFragment(fragmentSprites[collectIndices[index]]);
+            }
+            runRoute(index + 1);
+          });
+        };
+
+        if (Array.isArray(target) && target.length >= 2) {
+          this.movePlayerToTutorialTarget(target[0], target[1], step.duration, () => {
+            if (typeof step.collectIndex === "number") {
+              this.collectFragment(fragmentSprites[step.collectIndex]);
+            }
+
+            runAfterMove();
+          });
+          return;
+        }
+
+        if (routeTargets) {
+          runRoute(0);
+          return;
+        }
+
+        runAfterMove();
+      });
     };
 
     this.hud.showTutorialOverlay({
-      title: "Tutorial Demo",
-      body: "Stage 1 will autoplay while the controls animate below.",
-      progress: "Stage 1 / Guided demo",
+      title: tutorialCopy.title,
+      body: tutorialCopy.startBody,
+      progress: tutorialCopy.progressLabel.replace("{step}", "1"),
       activeControls: ["move"],
-      actionText: "Skip demo",
+      actionText: tutorialCopy.skipAction,
+      controlLabels: tutorialCopy.controlLabels,
       onAction: () => this.abortTutorialDemo()
     });
 

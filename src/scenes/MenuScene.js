@@ -19,7 +19,10 @@ class MenuScene extends Phaser.Scene {
     return `Version ${version.major}.${version.minor}  Build ${version.build}`;
   }
 
-  create() {
+  create(data = {}) {
+    // Force scale manager to recalculate canvas bounds in case DOM layout changed
+    // (e.g. HUD element was removed during scene shutdown from StageScene).
+    this.scale.refresh();
     const W = 960, H = 540;
     const cx = W / 2;
     const copy = {
@@ -228,6 +231,14 @@ class MenuScene extends Phaser.Scene {
       this.scene.start("StageScene", { stageIndex: 0, uiLanguage: currentLanguage });
     });
 
+    // Keyboard shortcuts: B = Begin, T = Tutorial (bypasses pointer events, uses Phaser input)
+    this.input.keyboard.on("keydown-B", () => {
+      this.scene.start("StageScene", { stageIndex: 0, uiLanguage: currentLanguage });
+    });
+    this.input.keyboard.on("keydown-T", () => {
+      this.scene.start("StageScene", { stageIndex: 0, uiLanguage: currentLanguage, tutorial: true });
+    });
+
     const tutorialButton = this.add.text(cx, 364, "  Tutorial Demo  ", {
       color: "#0f172a",
       backgroundColor: "#4ab0d0",
@@ -276,11 +287,11 @@ class MenuScene extends Phaser.Scene {
 
     communityButton.on("pointerover", () => {
       communityButton.setScale(1.08).setColor("#000814");
-      communityButton.setStyle({ backgroundColor: "#20c657" });
+      communityButton.setBackgroundColor("#20c657");
     });
     communityButton.on("pointerout", () => {
       communityButton.setScale(1).setColor("#0f172a");
-      communityButton.setStyle({ backgroundColor: "#25d366" });
+      communityButton.setBackgroundColor("#25d366");
     });
     communityButton.on("pointerdown", () => {
       window.open("https://chat.whatsapp.com/JNsjJMKmzNSI7gytj3wwau", "_blank");

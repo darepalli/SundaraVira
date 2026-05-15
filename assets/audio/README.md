@@ -24,13 +24,19 @@ The game expects the following audio files (MP3 format recommended for browser c
 - **Content**: "Jai Siyaram" chant or powerful mantra recitation
 - **Tone**: Powerful, triumphant
 
-### 4. **stage-transition-jai-shri-ram.mp3**
+### 4. **enemy-defeat-jai-siyaram.mp3**
+- **Trigger**: Played when defeating an enemy directly
+- **Duration**: ~0.5-1 second
+- **Content**: "Jai Siyaram" chant
+- **Tone**: Crisp, affirming
+
+### 5. **stage-transition-jai-shri-ram.mp3**
 - **Trigger**: Played when transitioning to the next stage
 - **Duration**: ~1-2 seconds
 - **Content**: "Jai Shri Ram" chant
 - **Tone**: Celebratory, progressing
 
-### 5. **victory-jai-shri-ram.mp3**
+### 6. **victory-jai-shri-ram.mp3**
 - **Trigger**: Played when completing the game
 - **Duration**: ~2-3 seconds
 - **Content**: "Jai Shri Ram" chant or extended mantra
@@ -51,6 +57,7 @@ The game expects the following audio files (MP3 format recommended for browser c
    - Open the game in browser console (F12 → Console)
    - Check for log messages:
      - `[AudioManager] Preloaded X/5 audio files. Using real audio.` — files loaded successfully
+   - `[AudioManager] Preloaded X/6 audio files. Using real audio.` — files loaded successfully
      - `[AudioManager] No audio files found. Falling back to tone synthesis.` — files missing; using synth
 
 4. **Fallback Behavior**:
